@@ -1,0 +1,137 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --bg: #0a0a0a;
+  --panel: rgba(255, 255, 255, 0.05);
+  --panel-border: rgba(212, 175, 55, 0.14);
+  --accent: #d4af37;
+  --accent-soft: #f5c14b;
+  --text: #f4efe8;
+  --muted: #9c958d;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(212, 175, 55, 0.25);
+  color: #ffffff;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111111;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ffd700;
+}
+
+/* Global Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Luxury Gradient */
+.luxury-gradient {
+  background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 45%, #0c0c0c 100%);
+}
+
+.gold-text {
+  color: var(--accent);
+}
+
+.gold-glow {
+  text-shadow: 0 0 18px rgba(212, 175, 55, 0.45);
+}
+
+.surface-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-premium {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
+  color: #0d0d0d;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.btn-premium:hover {
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+  transform: translateY(-2px);
+}
+
+.section-padding {
+  padding: 80px 20px;
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 50px 15px;
+  }
+}
