@@ -27,19 +27,19 @@ const Contact = () => {
     {
       icon: <FiPhone />,
       title: 'Concierge Line',
-      value: '+1 (888) SCENT-LUX',
+      value: '+92-303-7015072',
       description: 'Available Mon-Fri, 9am-6pm EST',
     },
     {
       icon: <FiMail />,
       title: 'Email Us',
-      value: 'concierge@scentora.com',
+      value: 'scentora.support@gmail.com',
       description: 'We aim to respond within 24 hours',
     },
     {
       icon: <FiMapPin />,
       title: 'Flagship Atelier',
-      value: '725 Luxury Row, Milan, Italy',
+      value: '725 Tariq Building Main Sanda Road, Lahore, Pakistan',
       description: 'Private viewings by appointment',
     },
     {
@@ -51,22 +51,22 @@ const Contact = () => {
   ]
 
   return (
-    <div className="min-h-screen pt-32 pb-20 luxury-gradient">
+    <div className="min-h-screen pt-24 pb-12 luxury-gradient">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-20"
+          className="text-center mb-12"
         >
           <div className="text-secondary uppercase tracking-[0.5em] text-sm mb-4">Concierge Services</div>
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">Connect With <span className="gold-text gold-glow">Us</span></h1>
-          <p className="max-w-2xl mx-auto text-muted text-lg leading-relaxed">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Connect With <span className="gold-text gold-glow">Us</span></h1>
+          <p className="max-w-xl mx-auto text-muted text-base leading-relaxed">
             Whether you seek a signature scent or require assistance with an order, our dedicated concierge team is here to provide an unparalleled experience.
           </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-12 items-start">
+        <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-8 items-start">
           {/* Contact Details */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -75,8 +75,8 @@ const Contact = () => {
             className="grid sm:grid-cols-2 gap-6"
           >
             {contactInfo.map((info, idx) => (
-              <div key={idx} className="surface-panel p-8 rounded-3xl border border-secondary/5 hover:border-secondary/20 transition-all duration-300">
-                <div className="text-3xl text-secondary mb-6">{info.icon}</div>
+              <div key={idx} className="surface-panel p-6 rounded-2xl border border-secondary/5 hover:border-secondary/20 transition-all duration-300">
+                <div className="text-2xl text-secondary mb-4">{info.icon}</div>
                 <h3 className="text-lg font-bold text-white mb-2">{info.title}</h3>
                 <p className="text-secondary font-medium mb-2">{info.value}</p>
                 <p className="text-muted text-xs uppercase tracking-widest">{info.description}</p>

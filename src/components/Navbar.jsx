@@ -52,10 +52,10 @@ const Navbar = () => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass border-b border-secondary/10 shadow-xl' : 'bg-primary/90'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <div className="text-3xl font-bold gold-text gold-glow">Scentora</div>
+            <div className="text-2xl font-bold gold-text gold-glow">Scentora</div>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8 text-sm text-gray-300">
@@ -80,7 +80,7 @@ const Navbar = () => {
             </div>
 
             <Link to="/wishlist" className="relative hover:text-secondary transition">
-              <FiHeart size={24} />
+              <FiHeart size={20} />
             </Link>
 
             <Link to="/cart" className="relative hover:text-secondary transition">
@@ -99,7 +99,7 @@ const Navbar = () => {
                   onClick={() => setProfileOpen((prev) => !prev)}
                   className="flex items-center space-x-2 hover:text-secondary transition"
                 >
-                  <FiUser size={24} />
+                  <FiUser size={20} />
                   <span>{user.firstName}</span>
                 </button>
                 {profileOpen && (

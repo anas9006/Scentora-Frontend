@@ -50,41 +50,41 @@ const Home = () => {
     <div className="relative">
       <MistBackground />
       {/* Hero Section */}
-      <section className="min-h-screen bg-gradient-to-b from-dark via-primary to-dark flex items-center px-4 pt-24">
+      <section className="min-h-screen bg-gradient-to-b from-dark via-primary to-dark flex items-center px-4 pt-20">
         <div className="max-w-7xl mx-auto grid gap-12 lg:grid-cols-[1.15fr_0.85fr] items-center">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-8"
+            className="space-y-6"
           >
             <div className="flex items-center gap-3 text-sm uppercase tracking-[0.35em] text-secondary">
               <span className="h-0.5 w-16 bg-secondary rounded-full"></span>
               Premium Collection
             </div>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
               Sculpting <span className="gold-text gold-glow">Dreams</span> in a Bottle
             </h1>
             <p className="max-w-2xl text-lg text-[#bdb4a7]">
               Explore an elite world of bespoke perfumes crafted for the modern connoisseur. Scentora blends art and olfactive luxury into every bottle.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/shop" className="btn-premium px-8 py-4 rounded font-bold">
+              <Link to="/shop" className="btn-premium px-6 py-3 rounded font-bold text-sm">
                 View All Perfumes
               </Link>
-              <button className="border border-secondary text-secondary px-8 py-4 rounded font-semibold hover:bg-secondary/20 transition">
+              <button className="border border-secondary text-secondary px-6 py-3 rounded font-semibold text-sm hover:bg-secondary/20 transition">
                 Explore Editions
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-sm text-[#b3aba1]">
-              <div className="surface-panel p-5 rounded-3xl">
-                <p className="text-secondary uppercase tracking-[0.2em] mb-2">Timeless scents</p>
-                <p className="font-semibold text-xl">100+</p>
+              <div className="surface-panel p-4 rounded-2xl">
+                <p className="text-secondary uppercase tracking-[0.2em] mb-1 text-[10px]">Timeless scents</p>
+                <p className="font-semibold text-lg">100+</p>
               </div>
-              <div className="surface-panel p-5 rounded-3xl">
-                <p className="text-secondary uppercase tracking-[0.2em] mb-2">Unique blends</p>
-                <p className="font-semibold text-xl">80k+</p>
+              <div className="surface-panel p-4 rounded-2xl">
+                <p className="text-secondary uppercase tracking-[0.2em] mb-1 text-[10px]">Unique blends</p>
+                <p className="font-semibold text-lg">80k+</p>
               </div>
             </div>
           </motion.div>
@@ -95,10 +95,10 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="relative"
           >
-            <div className="surface-panel relative overflow-hidden rounded-[2rem] p-10">
+            <div className="surface-panel relative overflow-hidden rounded-[1.5rem] p-6">
               {/* <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent pointer-events-none"></div> */}
-              <div className="relative rounded-[1.75rem] overflow-hidden bg-[#111111]">
-                <div className="w-full h-[500px] flex items-center justify-center relative group">
+              <div className="relative rounded-[1.25rem] overflow-hidden bg-[#111111]">
+                <div className="w-full h-[400px] flex items-center justify-center relative group">
                   <motion.div
                     animate={{ 
                       y: [0, -15, 0],
@@ -145,11 +145,11 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.15 }}
-                className="surface-panel p-8 rounded-[2rem] border border-secondary/15 hover:border-secondary/30 transition cursor-pointer"
+                className="surface-panel p-6 rounded-[1.5rem] border border-secondary/15 hover:border-secondary/30 transition cursor-pointer"
               >
-                <p className="text-secondary uppercase tracking-[0.3em] mb-4 text-xs">Signature</p>
-                <h3 className="text-2xl font-semibold mb-4">{collection}</h3>
-                <p className="text-[#b3aba1]">A refined sensory journey built for collectors who enjoy rare, handcrafted fragrances.</p>
+                <p className="text-secondary uppercase tracking-[0.3em] mb-3 text-[10px]">Signature</p>
+                <h3 className="text-xl font-semibold mb-3">{collection}</h3>
+                <p className="text-[#b3aba1] text-sm">A refined sensory journey built for collectors who enjoy rare, handcrafted fragrances.</p>
               </motion.div>
             ))}
           </div>
@@ -198,10 +198,10 @@ const Home = () => {
       <section className="section-padding">
         <div className="max-w-7xl mx-auto grid gap-10 lg:grid-cols-[0.9fr_0.7fr] items-center">
           <div>
-            <h2 className="text-4xl font-bold mb-6">
+            <h2 className="text-3xl font-bold mb-4">
               Journey of <span className="gold-text">Elysian Elegance</span>
             </h2>
-            <p className="text-[#b3aba1] mb-8">
+            <p className="text-[#b3aba1] text-sm mb-6">
               Follow the path of artistry and craftsmanship behind every Scentora creation. Each bottle captures a timeless story of luxury.
             </p>
             <div className="space-y-5">
@@ -219,9 +219,9 @@ const Home = () => {
                   description: 'A bold luxury statement shaped for modern collectors.',
                 },
               ].map((item) => (
-                <div key={item.title} className="surface-panel p-6 rounded-[1.75rem] border border-secondary/10">
-                  <p className="text-secondary uppercase tracking-[0.3em] mb-2 text-xs">{item.title}</p>
-                  <p className="text-[#b3aba1]">{item.description}</p>
+                <div key={item.title} className="surface-panel p-5 rounded-[1.25rem] border border-secondary/10">
+                  <p className="text-secondary uppercase tracking-[0.3em] mb-1 text-[10px]">{item.title}</p>
+                  <p className="text-[#b3aba1] text-sm">{item.description}</p>
                 </div>
               ))}
             </div>
@@ -234,8 +234,8 @@ const Home = () => {
                 <div className="mb-6 inline-flex items-center justify-center rounded-full border border-secondary/20 bg-[#111111] w-24 h-24 mx-auto">
                   <span className="text-3xl gold-text">S</span>
                 </div>
-                <p className="text-[#b3aba1] mb-6">Scentora is crafted for those who seek a luxurious statement. Every detail is curated to feel like a private atelier.</p>
-                <button className="btn-premium px-6 py-3 rounded-full">Discover the Collection</button>
+                <p className="text-[#b3aba1] text-sm mb-6">Scentora is crafted for those who seek a luxurious statement. Every detail is curated to feel like a private atelier.</p>
+                <button className="btn-premium px-5 py-2.5 rounded-full text-sm">Discover the Collection</button>
               </div>
             </div>
           </div>

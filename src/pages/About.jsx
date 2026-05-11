@@ -34,9 +34,9 @@ const About = () => {
   ]
 
   return (
-    <div className="min-h-screen pt-32 pb-20 luxury-gradient overflow-hidden">
+    <div className="min-h-screen pt-24 pb-12 luxury-gradient overflow-hidden">
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 mb-24">
+      <section className="max-w-7xl mx-auto px-4 mb-16">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -47,21 +47,18 @@ const About = () => {
               <span className="w-12 h-px bg-secondary"></span>
               Our Story
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-6">
               The Essence of <span className="gold-text gold-glow">Heritage</span>
             </h1>
-            <p className="text-lg text-muted leading-relaxed mb-8">
-              Founded in the heart of Florence, Scentora began as a private atelier for the elite. Our mission was simple: to capture the intangible beauty of memory in a bottle.
-            </p>
-            <p className="text-lg text-muted leading-relaxed mb-12">
-              Today, we continue that legacy, blending traditional artisanal methods with modern scientific precision to create fragrances that are not just smelled, but experienced.
+            <p className="text-base text-muted leading-relaxed mb-6">
+              Founded in the heart of Florence, Scentora began as a private atelier for the elite. Our mission was simple: to capture the intangible beauty of memory in a bottle. Today, we continue that legacy, blending traditional artisanal methods with modern scientific precision to create fragrances that are not just smelled, but experienced.
             </p>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
               {stats.map((stat, idx) => (
                 <div key={idx}>
-                  <p className="text-3xl font-bold text-secondary mb-1">{stat.value}</p>
-                  <p className="text-xs uppercase tracking-widest text-muted">{stat.label}</p>
+                  <p className="text-2xl font-bold text-secondary mb-1">{stat.value}</p>
+                  <p className="text-[10px] uppercase tracking-widest text-muted">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -90,10 +87,10 @@ const About = () => {
       </section>
 
       {/* Philosophy Section */}
-      <section className="bg-black/40 py-24 border-y border-secondary/10">
+      <section className="bg-black/40 py-16 border-y border-secondary/10">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">The Scentora <span className="gold-text">Philosophy</span></h2>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">The Scentora <span className="gold-text">Philosophy</span></h2>
             <div className="h-1 w-24 bg-secondary mx-auto rounded-full"></div>
           </div>
 
@@ -105,11 +102,11 @@ const About = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="surface-panel p-8 rounded-3xl border border-secondary/5 hover:border-secondary/20 transition-all duration-300"
+                className="surface-panel p-4 rounded-2xl border border-secondary/5 hover:border-secondary/20 transition-all duration-300"
               >
-                <div className="text-4xl text-secondary mb-6">{feature.icon}</div>
-                <h3 className="text-xl font-bold text-white mb-4">{feature.title}</h3>
-                <p className="text-muted text-sm leading-relaxed">{feature.description}</p>
+                <div className="text-2xl text-secondary mb-3">{feature.icon}</div>
+                <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
+                <p className="text-muted text-xs leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -117,13 +114,13 @@ const About = () => {
       </section>
 
       {/* Vision Section */}
-      <section className="max-w-7xl mx-auto px-4 py-32">
-        <div className="surface-panel p-12 md:p-20 rounded-[4rem] relative overflow-hidden border border-secondary/10">
+      <section className="max-w-7xl mx-auto px-4 py-20">
+        <div className="surface-panel p-8 md:p-12 rounded-[2rem] relative overflow-hidden border border-secondary/10">
           <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/5 blur-[120px] rounded-full"></div>
           <div className="relative z-10 grid lg:grid-cols-[1.2fr_0.8fr] gap-16 items-center">
             <div>
-              <h2 className="text-4xl md:text-6xl font-bold text-white mb-8">Looking Beyond the <span className="gold-text">Horizon</span></h2>
-              <p className="text-xl text-muted leading-relaxed mb-10">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Looking Beyond the <span className="gold-text">Horizon</span></h2>
+              <p className="text-lg text-muted leading-relaxed mb-8">
                 Our vision is to redefine luxury for a new generation. One where quality, authenticity, and sustainability are inseparable. We invite you to join us on this aromatic journey.
               </p>
               <button className="btn-premium px-10 py-4 rounded-full font-bold">Discover Collections</button>

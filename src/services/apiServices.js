@@ -17,16 +17,52 @@ export const productAPI = {
   getAllProducts: (params) => api.get('/products', { params }),
   getProductById: (id) => api.get(`/products/${id}`),
   getFeaturedProducts: () => api.get('/products/featured'),
-  createProduct: (data) => api.post('/products', data),
-  updateProduct: (id, data) => api.put(`/products/${id}`, data),
+  createProduct: (data) => {
+    if (data instanceof FormData) {
+      return api.post('/products', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    }
+    return api.post('/products', data)
+  },
+  updateProduct: (id, data) => {
+    if (data instanceof FormData) {
+      return api.put(`/products/${id}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    }
+    return api.put(`/products/${id}`, data)
+  },
   deleteProduct: (id) => api.delete(`/products/${id}`),
 }
 
 export const categoryAPI = {
   getAllCategories: () => api.get('/categories'),
   getCategoryBySlug: (slug) => api.get(`/categories/${slug}`),
-  createCategory: (data) => api.post('/categories', data),
-  updateCategory: (id, data) => api.put(`/categories/${id}`, data),
+  createCategory: (data) => {
+    if (data instanceof FormData) {
+      return api.post('/categories', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    }
+    return api.post('/categories', data)
+  },
+  updateCategory: (id, data) => {
+    if (data instanceof FormData) {
+      return api.put(`/categories/${id}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+    }
+    return api.put(`/categories/${id}`, data)
+  },
   deleteCategory: (id) => api.delete(`/categories/${id}`),
 }
 
