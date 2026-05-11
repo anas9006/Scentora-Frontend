@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_URL =
+  import.meta.env.VITE_API_URL || 'https://scentora-backend-bwfc.onrender.com/api'
 
 const api = axios.create({
   baseURL: API_URL,
@@ -36,5 +37,8 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+export default api
+
 
 export default api
