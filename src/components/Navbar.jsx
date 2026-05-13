@@ -54,11 +54,20 @@ const Navbar = () => {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass border-b border-secondary/10 shadow-xl' : 'bg-primary/90'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
-            <div className="text-2xl font-bold gold-text gold-glow">Scentora</div>
-          </Link>
+          {/* Left Side: Hamburger & Logo */}
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => setIsOpen(!isOpen)} 
+              className="md:hidden hover:text-secondary focus:outline-none transition-colors"
+            >
+              {isOpen ? <FiX size={26} /> : <FiMenu size={26} />}
+            </button>
+            <Link to="/" className="flex-shrink-0">
+              <div className="text-2xl font-bold gold-text gold-glow">Scentora</div>
+            </Link>
+          </div>
 
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-8 text-sm text-gray-300">
             <Link to="/" className="hover:text-secondary transition">Home</Link>
             <Link to="/shop" className="hover:text-secondary transition">Shop</Link>
@@ -67,92 +76,77 @@ const Navbar = () => {
             <Link to="/contact" className="hover:text-secondary transition">Contact</Link>
           </div>
 
-          {/* Right Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="relative">
+          {/* Right Side Actions: Profile, Wishlist, Cart */}
+          <div className="flex items-center space-x-3 md:space-x-5">
+            {/* Desktop Search */}
+            <div className="hidden md:block relative">
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-[#121212] border border-secondary/20 rounded px-3 py-2 text-sm w-40 focus:outline-none focus:border-secondary"
+                className="bg-[#121212] border border-secondary/20 rounded px-3 py-2 text-sm w-40 focus:outline-none focus:border-secondary transition-all"
               />
               <FiSearch className="absolute right-3 top-3 text-secondary cursor-pointer" />
             </div>
 
+            {/* Profile Link/Dropdown */}
+            <div ref={profileRef} className="relative">
+              {user ? (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setProfileOpen((prev) => !prev)}
+                    className="flex items-center hover:text-secondary transition"
+                  >
+                    <FiUser size={24} />
+                    <span className="hidden md:inline ml-2 text-sm">{user.firstName}</span>
+                  </button>
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-primary border border-secondary/20 rounded shadow-2xl overflow-hidden">
+                      <Link to="/profile" className="block px-4 py-2 hover:bg-[#111111] transition-colors">Profile</Link>
+                      {user.role === 'customer' && (
+                        <Link to="/order" className="block px-4 py-2 hover:bg-[#111111] transition-colors">Orders</Link>
+                      )}
+                      {user.role === 'admin' && (
+                        <Link to="/admin" className="block px-4 py-2 hover:bg-[#111111] transition-colors">Admin Pannel</Link>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 hover:bg-[#111111] transition-colors"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link to="/login" className="hover:text-secondary transition">
+                  <FiUser size={24} />
+                </Link>
+              )}
+            </div>
+
+            {/* Wishlist Link */}
             <Link to="/wishlist" className="relative hover:text-secondary transition">
-              <FiHeart size={20} />
+              <FiHeart size={24} className="md:w-5 md:h-5" />
               {wishlistItems && wishlistItems.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-secondary text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                <span className="absolute -top-2 -right-2 bg-secondary text-primary rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold">
                   {wishlistItems.length}
                 </span>
               )}
             </Link>
 
+            {/* Cart Link */}
             <Link to="/cart" className="relative hover:text-secondary transition">
-              <FiShoppingCart size={24} />
+              <FiShoppingCart size={24} className="md:w-6 md:h-6" />
               {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-secondary text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                <span className="absolute -top-2 -right-2 bg-secondary text-primary rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold">
                   {itemCount}
                 </span>
               )}
             </Link>
-
-            {user ? (
-              <div ref={profileRef} className="relative">
-                <button
-                  type="button"
-                  onClick={() => setProfileOpen((prev) => !prev)}
-                  className="flex items-center space-x-2 hover:text-secondary transition"
-                >
-                  <FiUser size={20} />
-                  <span>{user.firstName}</span>
-                </button>
-                {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-primary border border-secondary/20 rounded shadow-2xl">
-                    <Link to="/profile" className="block px-4 py-2 hover:bg-[#111111]">Profile</Link>
-                    {user.role === 'customer' && (
-                      <Link to="/order" className="block px-4 py-2 hover:bg-[#111111]">Orders</Link>
-                    )}
-                    {user.role === 'admin' && (
-                      <Link to="/admin" className="block px-4 py-2 hover:bg-[#111111]">Admin Pannel</Link>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 hover:bg-[#111111]"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link to="/login" className="btn-premium px-4 py-2 rounded">Login</Link>
-            )}
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <div className="md:hidden flex items-center space-x-4">
-            <Link to="/wishlist" className="relative hover:text-secondary transition">
-              <FiHeart size={24} />
-              {wishlistItems && wishlistItems.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-secondary text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                  {wishlistItems.length}
-                </span>
-              )}
-            </Link>
-            <Link to="/cart" className="relative hover:text-secondary transition">
-              <FiShoppingCart size={24} />
-              {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-secondary text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                  {itemCount}
-                </span>
-              )}
-            </Link>
-            <button onClick={() => setIsOpen(!isOpen)} className="hover:text-secondary">
-              {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-            </button>
           </div>
         </div>
 
