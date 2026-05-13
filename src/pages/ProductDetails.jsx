@@ -4,6 +4,9 @@ import { motion } from 'framer-motion'
 import { FiShoppingCart, FiHeart, FiStar } from 'react-icons/fi'
 import { productAPI, cartAPI, wishlistAPI, reviewAPI } from '../services/apiServices'
 import { toast } from 'react-toastify'
+import { useDispatch } from 'react-redux'
+import { setCart } from '../redux/cartSlice'
+import { setWishlist } from '../redux/wishlistSlice'
 
 const ProductDetails = () => {
   const { id } = useParams()
@@ -13,6 +16,7 @@ const ProductDetails = () => {
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const dispatch = useDispatch()
 
   useEffect(() => {
     fetchProductDetails()
@@ -41,10 +45,11 @@ const ProductDetails = () => {
 
   const handleAddToCart = async () => {
     try {
-      await cartAPI.addToCart({
+      const res = await cartAPI.addToCart({
         productId: product._id,
         quantity,
       })
+      dispatch(setCart(res.data.cart))
       toast.success('Added to cart!')
     } catch (error) {
       toast.error('Failed to add to cart')
@@ -53,7 +58,8 @@ const ProductDetails = () => {
 
   const handleAddToWishlist = async () => {
     try {
-      await wishlistAPI.addToWishlist({ productId: product._id })
+      const res = await wishlistAPI.addToWishlist({ productId: product._id })
+      dispatch(setWishlist({ products: res.data.wishlist.products }))
       setIsWishlisted(true)
       toast.success('Added to wishlist!')
     } catch (error) {
@@ -135,12 +141,12 @@ const ProductDetails = () => {
               <div className="mb-6">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-4xl font-bold gold-text">
-                    ${product.discountPrice || product.price}
+                    Rs. {product.discountPrice || product.price}
                   </span>
                   {product.discountPrice && (
                     <>
                       <span className="text-2xl line-through text-gray-500">
-                        ${product.price}
+                        Rs. {product.price}
                       </span>
                       <span className="bg-secondary text-primary px-3 py-1 rounded text-sm font-bold">
                         Save {discount}%
@@ -188,7 +194,7 @@ const ProductDetails = () => {
               </div>
 
               {/* Quantity & Actions */}
-              <div className="flex gap-4 mb-6">
+              <div className="flex flex-wrap sm:flex-nowrap gap-4 mb-6">
                 <div className="flex items-center gap-3 border border-secondary rounded">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}

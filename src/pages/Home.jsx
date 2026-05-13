@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import { productAPI, cartAPI, wishlistAPI } from '../services/apiServices'
 import { useDispatch } from 'react-redux'
+import { setCart } from '../redux/cartSlice'
+import { setWishlist } from '../redux/wishlistSlice'
 import { toast } from 'react-toastify'
 import MistBackground from '../components/MistBackground'
 import heroImage from '../assets/hero-perfume.png'
@@ -30,7 +32,8 @@ const Home = () => {
 
   const handleAddToCart = async (product) => {
     try {
-      await cartAPI.addToCart({ productId: product._id, quantity: 1 })
+      const res = await cartAPI.addToCart({ productId: product._id, quantity: 1 })
+      dispatch(setCart(res.data.cart))
       toast.success('Added to cart!')
     } catch (error) {
       toast.error('Failed to add to cart')
@@ -39,7 +42,8 @@ const Home = () => {
 
   const handleAddToWishlist = async (product) => {
     try {
-      await wishlistAPI.addToWishlist({ productId: product._id })
+      const res = await wishlistAPI.addToWishlist({ productId: product._id })
+      dispatch(setWishlist({ products: res.data.wishlist.products }))
       toast.success('Added to wishlist!')
     } catch (error) {
       toast.error('Failed to add to wishlist')

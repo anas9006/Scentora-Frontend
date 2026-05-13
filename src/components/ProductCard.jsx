@@ -29,8 +29,8 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
           </div>
         )}
 
-        {/* Overlay Actions */}
-        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4">
+        {/* Overlay Actions (Desktop) */}
+        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition hidden md:flex items-center justify-center gap-4">
           <motion.button
             whileHover={{ scale: 1.1 }}
             onClick={onAddToCart}
@@ -66,12 +66,33 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
           <span className="text-gray-400 text-xs ml-2">({product.rating || 0})</span>
         </div>
 
-        {/* Price */}
-        <div className="flex items-center gap-2">
-          <span className="text-secondary font-bold">${product.discountPrice || product.price}</span>
-          {product.discountPrice && (
-            <span className="text-gray-500 text-sm line-through">${product.price}</span>
-          )}
+        {/* Price and Mobile Actions */}
+        <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center gap-2">
+            <span className="text-secondary font-bold">${product.discountPrice || product.price}</span>
+            {product.discountPrice && (
+              <span className="text-gray-500 text-sm line-through">${product.price}</span>
+            )}
+          </div>
+          
+          {/* Mobile Actions */}
+          <div className="flex items-center gap-2 md:hidden">
+            <button
+              onClick={onAddToCart}
+              className="bg-secondary text-primary p-2 rounded-full hover:bg-yellow-400 transition"
+            >
+              <FiShoppingCart size={16} />
+            </button>
+            <button
+              onClick={() => {
+                setIsWishlisted(!isWishlisted)
+                onAddToWishlist()
+              }}
+              className={`p-2 rounded-full transition ${isWishlisted ? 'bg-red-600' : 'bg-[#111111] border border-secondary/20 text-gray-300'}`}
+            >
+              <FiHeart size={16} fill={isWishlisted ? 'currentColor' : 'none'} />
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>

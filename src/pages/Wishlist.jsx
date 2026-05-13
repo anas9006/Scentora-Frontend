@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiTrash2, FiShoppingCart } from 'react-icons/fi'
 import { wishlistAPI, cartAPI } from '../services/apiServices'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { toast } from 'react-toastify'
+import { setWishlist as setReduxWishlist } from '../redux/wishlistSlice'
+import { setCart } from '../redux/cartSlice'
 import ProductCard from '../components/ProductCard'
 
 const Wishlist = () => {
@@ -12,6 +14,7 @@ const Wishlist = () => {
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
 
   useEffect(() => {
     if (!user) {
@@ -25,6 +28,7 @@ const Wishlist = () => {
     try {
       const response = await wishlistAPI.getWishlist()
       setWishlist(response.data.wishlist)
+      dispatch(setReduxWishlist({ products: response.data.wishlist.products }))
     } catch (error) {
       toast.error('Error loading wishlist')
     } finally {
@@ -44,7 +48,8 @@ const Wishlist = () => {
 
   const handleAddToCart = async (product) => {
     try {
-      await cartAPI.addToCart({ productId: product._id, quantity: 1 })
+      const res = await cartAPI.addToCart({ productId: product._id, quantity: 1 })
+      dispatch(setCart(res.data.cart))
       toast.success('Added to cart!')
     } catch (error) {
       toast.error('Failed to add to cart')

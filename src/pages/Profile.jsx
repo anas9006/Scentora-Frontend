@@ -323,7 +323,7 @@ const Profile = () => {
                           </div>
                           <div>
                             <p className="text-xs text-muted uppercase tracking-widest mb-1">Total</p>
-                            <p className="text-lg font-bold text-accent">${order.totalAmount.toFixed(2)}</p>
+                            <p className="text-lg font-bold text-accent">Rs. {order.totalAmount.toFixed(2)}</p>
                           </div>
                         </div>
 
@@ -339,7 +339,7 @@ const Profile = () => {
                               </div>
                               <div className="flex-1">
                                 <p className="text-light font-medium">{item.product?.name}</p>
-                                <p className="text-sm text-muted">Qty: {item.quantity} × ${item.price}</p>
+                                <p className="text-sm text-muted">Qty: {item.quantity} × Rs. {item.price}</p>
                               </div>
                             </div>
                           ))}

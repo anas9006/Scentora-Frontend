@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { orderAPI, cartAPI } from "../services/apiServices";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import { clearCartSuccess } from "../redux/cartSlice";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [cart, setCart] = useState(null);
 
@@ -81,6 +83,7 @@ const Checkout = () => {
       };
 
       const response = await orderAPI.createOrder(orderData);
+      dispatch(clearCartSuccess());
       toast.success("Order placed successfully!");
       navigate(`/order-confirmation/${response.data.order._id}`);
     } catch (error) {
@@ -258,29 +261,29 @@ const Checkout = () => {
                     <p className="font-semibold">{item.product.name}</p>
                     <p className="text-gray-400">Qty: {item.quantity}</p>
                   </div>
-                  <span className="gold-text font-semibold">
-                    ${((item.product.price || 0) * item.quantity).toFixed(2)}
-                  </span>
+                  <p className="font-bold gold-text">
+                    Rs. {((item.product.price || 0) * item.quantity).toFixed(2)}
+                  </p>
                 </div>
               ))}
             </div>
 
             <div className="space-y-3">
-              <div className="flex justify-between">
+              <div className="flex justify-between text-muted">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>Rs. {subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between text-muted">
                 <span>Shipping</span>
-                <span>FREE</span>
+                <span>Free</span>
               </div>
-              <div className="flex justify-between">
-                <span>Tax (10%)</span>
-                <span>${tax.toFixed(2)}</span>
+              <div className="flex justify-between text-muted">
+                <span>Estimated Tax</span>
+                <span>Rs. {tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-lg font-bold gold-text border-t border-gray-700 pt-3">
+              <div className="flex justify-between text-xl font-bold pt-4 border-t border-white/10 text-light">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span className="gold-text">Rs. {total.toFixed(2)}</span>
               </div>
             </div>
           </div>

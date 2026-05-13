@@ -3,14 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiTrash2, FiArrowRight } from 'react-icons/fi'
 import { cartAPI } from '../services/apiServices'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { toast } from 'react-toastify'
+import { setCart as setReduxCart } from '../redux/cartSlice'
 
 const Cart = () => {
   const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
 
   useEffect(() => {
     if (!user) {
@@ -24,6 +26,7 @@ const Cart = () => {
     try {
       const response = await cartAPI.getCart()
       setCart(response.data.cart)
+      dispatch(setReduxCart(response.data.cart))
     } catch (error) {
       toast.error('Error loading cart')
     } finally {
@@ -47,7 +50,7 @@ const Cart = () => {
       await cartAPI.updateCartItem(itemId, { quantity })
       fetchCart()
     } catch (error) {
-      toast.error('Error updating cart')
+      toast.error(error.response.data.message)
     }
   }
 
@@ -124,7 +127,7 @@ const Cart = () => {
 
                 {/* Price */}
                 <div className="text-right">
-                  <p className="font-bold gold-text">${((item.product.price || 0) * item.quantity).toFixed(2)}</p>
+                  <p className="font-bold gold-text">Rs. {((item.product.price || 0) * item.quantity).toFixed(2)}</p>
                   <button
                     onClick={() => handleRemoveItem(item._id)}
                     className="text-red-400 hover:text-red-600 mt-2 flex items-center gap-1"
@@ -139,17 +142,21 @@ const Cart = () => {
           {/* Summary */}
           <div className="p-6 bg-black">
             <div className="space-y-3 mb-6">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span>${subtotal.toFixed(2)}</span>
+              <div className="flex justify-between text-gray-400">
+                <span>Subtotal</span>
+                <span>Rs. {subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Tax (10%):</span>
-                <span>${tax.toFixed(2)}</span>
+              <div className="flex justify-between text-gray-400">
+                <span>Shipping</span>
+                <span>Free</span>
               </div>
-              <div className="flex justify-between text-lg font-bold gold-text border-t border-gray-700 pt-3">
-                <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
+              <div className="flex justify-between text-gray-400">
+                <span>Estimated Tax</span>
+                <span>Rs. {tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-2xl font-bold pt-4 border-t border-gray-700">
+                <span>Total</span>
+                <span className="gold-text">Rs. {total.toFixed(2)}</span>
               </div>
             </div>
 

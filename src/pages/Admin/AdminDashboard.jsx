@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiBarChart, FiPackage, FiShoppingCart, FiUsers, FiPlus, FiTrash2, FiEdit, FiLayers } from 'react-icons/fi'
+import { FiBarChart, FiPackage, FiShoppingCart, FiUsers, FiPlus, FiTrash2, FiEdit, FiLayers, FiLoader } from 'react-icons/fi'
 import { categoryAPI, productAPI, orderAPI, authAPI } from '../../services/apiServices'
 import { toast } from 'react-toastify'
 import CategoryForm from './CategoryForm'
@@ -22,6 +22,7 @@ const AdminDashboard = () => {
   // Modal States
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
+  const [updatingOrderId, setUpdatingOrderId] = useState(null)
 
   // Data States
   const [categories, setCategories] = useState([])
@@ -100,13 +101,16 @@ const AdminDashboard = () => {
   }
 
   const handleUpdateOrderStatus = async (orderId, status) => {
+    setUpdatingOrderId(orderId)
     try {
       await orderAPI.updateOrderStatus(orderId, { orderStatus: status })
       toast.success(`Order status updated to ${status}`)
-      fetchOrders()
-      fetchStats()
+      await fetchOrders()
+      await fetchStats()
     } catch (error) {
       toast.error('Failed to update status')
+    } finally {
+      setUpdatingOrderId(null)
     }
   }
 
@@ -172,38 +176,45 @@ const AdminDashboard = () => {
               <h1 className="text-4xl font-bold gold-text gold-glow">Admin Sanctum</h1>
               <p className="text-muted mt-2">Overseeing the fragrance empire.</p>
             </div>
-            <div className="flex gap-4">
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-4 border-b border-white/5">
+          <div className="flex gap-4 overflow-x-auto scrollbar-hide w-full md:w-auto">
+            {['dashboard', 'categories', 'products', 'orders', 'customers'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-8 py-3 rounded-xl font-bold transition-all duration-300 capitalize flex-shrink-0 ${activeTab === tab
+                    ? 'bg-secondary text-primary shadow-lg shadow-secondary/20'
+                    : 'bg-white/5 text-muted hover:bg-white/10 hover:text-light'
+                  }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          
+          <div className="flex gap-4 flex-shrink-0">
+            {activeTab === 'categories' && (
               <button
                 onClick={() => setIsCategoryModalOpen(true)}
                 className="flex items-center gap-2 bg-white/5 border border-secondary/30 px-6 py-2 rounded-lg hover:bg-white/10 transition"
               >
                 <FiPlus /> Category
               </button>
+            )}
+            {activeTab === 'products' && (
               <button
                 onClick={() => setIsProductModalOpen(true)}
                 className="btn-premium px-6 py-2 rounded-lg flex items-center gap-2"
               >
                 <FiPlus /> New Product
               </button>
-            </div>
+            )}
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex gap-4 mb-10 overflow-x-auto pb-4 scrollbar-hide">
-          {['dashboard', 'categories', 'products', 'orders', 'customers'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-8 py-3 rounded-xl font-bold transition-all duration-300 capitalize flex-shrink-0 ${activeTab === tab
-                  ? 'bg-secondary text-primary shadow-lg shadow-secondary/20'
-                  : 'bg-white/5 text-muted hover:bg-white/10 hover:text-light'
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
         </div>
 
         <AnimatePresence mode="wait">
@@ -366,20 +377,26 @@ const AdminDashboard = () => {
                           ${order.totalAmount.toFixed(2)}
                         </td>
                         <td className="px-6 py-4">
-                          <select
-                            value={order.orderStatus}
-                            onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
-                            className={`bg-black border border-white/10 rounded-lg px-3 py-1 text-xs font-bold uppercase focus:outline-none focus:border-secondary ${order.orderStatus === 'delivered' ? 'text-green-400' :
-                                order.orderStatus === 'pending' ? 'text-yellow-400' :
-                                  'text-blue-400'
-                              }`}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={order.orderStatus}
+                              onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
+                              disabled={updatingOrderId === order._id}
+                              className={`bg-black border border-white/10 rounded-lg px-3 py-1 text-xs font-bold uppercase focus:outline-none focus:border-secondary ${order.orderStatus === 'delivered' ? 'text-green-400' :
+                                  order.orderStatus === 'pending' ? 'text-yellow-400' :
+                                    'text-blue-400'
+                                } ${updatingOrderId === order._id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="processing">Processing</option>
+                              <option value="shipped">Shipped</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                            {updatingOrderId === order._id && (
+                              <FiLoader className="animate-spin text-secondary" size={16} />
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-muted text-sm">
                           {new Date(order.createdAt).toLocaleDateString()}

@@ -1,5 +1,9 @@
 import React, { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { cartAPI, wishlistAPI } from './services/apiServices'
+import { setCart } from './redux/cartSlice'
+import { setWishlist } from './redux/wishlistSlice'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Navbar from './components/Navbar'
@@ -24,6 +28,9 @@ import ProtectedRoute from './components/ProtectedRoute'
 import ScrollToTop from './components/ScrollToTop'
 
 function App() {
+  const dispatch = useDispatch()
+  const { user } = useSelector((state) => state.auth)
+
   useEffect(() => {
     const handleScroll = () => {
     }
@@ -31,6 +38,22 @@ function App() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => {
+    if (user) {
+      const fetchUserData = async () => {
+        try {
+          const cartRes = await cartAPI.getCart()
+          dispatch(setCart(cartRes.data.cart))
+          const wishlistRes = await wishlistAPI.getWishlist()
+          dispatch(setWishlist({ products: wishlistRes.data.wishlist.products }))
+        } catch (error) {
+          console.error('Error fetching user data', error)
+        }
+      }
+      fetchUserData()
+    }
+  }, [user, dispatch])
 
   return (
     <Router>

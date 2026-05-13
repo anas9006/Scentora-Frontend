@@ -4,12 +4,16 @@ import ProductCard from '../components/ProductCard'
 import { productAPI, cartAPI, wishlistAPI, categoryAPI } from '../services/apiServices'
 import { toast } from 'react-toastify'
 import { FiSliders, FiX, FiSearch, FiChevronDown } from 'react-icons/fi'
+import { useDispatch } from 'react-redux'
+import { setCart } from '../redux/cartSlice'
+import { setWishlist } from '../redux/wishlistSlice'
 
 const Shop = () => {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const dispatch = useDispatch()
 
   const [filters, setFilters] = useState({
     category: '',
@@ -63,7 +67,8 @@ const Shop = () => {
 
   const handleAddToCart = async (product) => {
     try {
-      await cartAPI.addToCart({ productId: product._id, quantity: 1 })
+      const res = await cartAPI.addToCart({ productId: product._id, quantity: 1 })
+      dispatch(setCart(res.data.cart))
       toast.success('Added to cart!')
     } catch (error) {
       toast.error('Failed to add to cart')
@@ -72,7 +77,8 @@ const Shop = () => {
 
   const handleAddToWishlist = async (product) => {
     try {
-      await wishlistAPI.addToWishlist({ productId: product._id })
+      const res = await wishlistAPI.addToWishlist({ productId: product._id })
+      dispatch(setWishlist({ products: res.data.wishlist.products }))
       toast.success('Added to wishlist!')
     } catch (error) {
       toast.error('Failed to add to wishlist')

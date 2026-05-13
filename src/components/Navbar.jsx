@@ -14,6 +14,7 @@ const Navbar = () => {
   const profileRef = useRef(null)
   const { user, token } = useSelector((state) => state.auth)
   const { itemCount } = useSelector((state) => state.cart)
+  const { items: wishlistItems } = useSelector((state) => state.wishlist)
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
@@ -81,6 +82,11 @@ const Navbar = () => {
 
             <Link to="/wishlist" className="relative hover:text-secondary transition">
               <FiHeart size={20} />
+              {wishlistItems && wishlistItems.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-secondary text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                  {wishlistItems.length}
+                </span>
+              )}
             </Link>
 
             <Link to="/cart" className="relative hover:text-secondary transition">
@@ -128,6 +134,14 @@ const Navbar = () => {
 
           {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center space-x-4">
+            <Link to="/wishlist" className="relative hover:text-secondary transition">
+              <FiHeart size={24} />
+              {wishlistItems && wishlistItems.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-secondary text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                  {wishlistItems.length}
+                </span>
+              )}
+            </Link>
             <Link to="/cart" className="relative hover:text-secondary transition">
               <FiShoppingCart size={24} />
               {itemCount > 0 && (
@@ -155,7 +169,6 @@ const Navbar = () => {
             <Link to="/collections" className="block py-2 text-gray-300 hover:text-secondary transition">Collections</Link>
             <Link to="/about" className="block py-2 text-gray-300 hover:text-secondary transition">About</Link>
             <Link to="/contact" className="block py-2 text-gray-300 hover:text-secondary transition">Contact</Link>
-            <Link to="/wishlist" className="block py-2 text-gray-300 hover:text-secondary transition">Wishlist</Link>
             {!user && <Link to="/login" className="block py-2 text-gray-300 hover:text-secondary transition">Login</Link>}
           </motion.div>
         )}

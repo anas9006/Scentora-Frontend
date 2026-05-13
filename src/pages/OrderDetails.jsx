@@ -83,7 +83,7 @@ const OrderDetails = () => {
                       <p className="text-sm text-muted mb-2">{item.product?.brand}</p>
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Qty: {item.quantity}</span>
-                        <span className="text-lg font-bold text-secondary">${(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-lg font-bold text-secondary">Rs. {(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -102,19 +102,19 @@ const OrderDetails = () => {
               <div className="space-y-4">
                 <div className="flex justify-between text-muted">
                   <span>Subtotal</span>
-                  <span>${(order.totalAmount - (order.shippingCost || 0)).toFixed(2)}</span>
+                  <span>Rs. {(order.totalAmount - (order.shippingCost || 0)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-muted">
                   <span>Shipping</span>
-                  <span>${(order.shippingCost || 0).toFixed(2)}</span>
+                  <span>Rs. {(order.shippingCost || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-muted">
                   <span>Tax</span>
-                  <span>$0.00</span>
+                  <span>Rs. 0.00</span>
                 </div>
                 <div className="flex justify-between text-2xl font-bold gold-text pt-4 border-t border-white/10">
                   <span>Total</span>
-                  <span>${order.totalAmount.toFixed(2)}</span>
+                  <span>Rs. {order.totalAmount.toFixed(2)}</span>
                 </div>
               </div>
             </motion.div>
