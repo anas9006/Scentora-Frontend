@@ -1,9 +1,14 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { FiShoppingCart, FiHeart } from 'react-icons/fi'
+import { useSelector } from 'react-redux'
 
 const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
-  const [isWishlisted, setIsWishlisted] = React.useState(false)
+  const [isAddingToCart, setIsAddingToCart] = React.useState(false)
+  const wishlistItems = useSelector((state) => state.wishlist.items)
+
+  const getProductId = (item) => item?._id || item?.product?._id || item?.product || item
+  const isWishlisted = wishlistItems.some((item) => String(getProductId(item)) === String(product._id))
 
   const discountPercentage = product.discountPrice
     ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
@@ -33,17 +38,23 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
         <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition hidden md:flex items-center justify-center gap-4">
           <motion.button
             whileHover={{ scale: 1.1 }}
-            onClick={onAddToCart}
-            className="bg-secondary text-primary p-3 rounded-full hover:bg-yellow-400 transition"
+            onClick={async () => {
+              setIsAddingToCart(true)
+              await onAddToCart()
+              setIsAddingToCart(false)
+            }}
+            disabled={isAddingToCart}
+            className="bg-secondary text-primary p-3 rounded-full hover:bg-yellow-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FiShoppingCart size={20} />
+            {isAddingToCart ? (
+              <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+            ) : (
+              <FiShoppingCart size={20} />
+            )}
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.1 }}
-            onClick={() => {
-              setIsWishlisted(!isWishlisted)
-              onAddToWishlist()
-            }}
+            onClick={onAddToWishlist}
             className={`p-3 rounded-full transition ${isWishlisted ? 'bg-red-600' : 'bg-secondary text-primary hover:bg-yellow-400'}`}
           >
             <FiHeart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />
@@ -78,16 +89,22 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
           {/* Mobile Actions */}
           <div className="flex items-center gap-2 md:hidden">
             <button
-              onClick={onAddToCart}
-              className="bg-secondary text-primary p-2 rounded-full hover:bg-yellow-400 transition"
+              onClick={async () => {
+                setIsAddingToCart(true)
+                await onAddToCart()
+                setIsAddingToCart(false)
+              }}
+              disabled={isAddingToCart}
+              className="bg-secondary text-primary p-2 rounded-full hover:bg-yellow-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FiShoppingCart size={16} />
+              {isAddingToCart ? (
+                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+              ) : (
+                <FiShoppingCart size={16} />
+              )}
             </button>
             <button
-              onClick={() => {
-                setIsWishlisted(!isWishlisted)
-                onAddToWishlist()
-              }}
+              onClick={onAddToWishlist}
               className={`p-2 rounded-full transition ${isWishlisted ? 'bg-red-600' : 'bg-[#111111] border border-secondary/20 text-gray-300'}`}
             >
               <FiHeart size={16} fill={isWishlisted ? 'currentColor' : 'none'} />

@@ -1,9 +1,15 @@
 import React, { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { FiArrowUp } from 'react-icons/fi'
 import { motion } from 'framer-motion'
 
 const ScrollToTop = () => {
   const [isVisible, setIsVisible] = React.useState(false)
+  const { pathname, search } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [pathname, search])
 
   useEffect(() => {
     const handleScroll = () => {

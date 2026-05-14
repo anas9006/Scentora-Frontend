@@ -24,28 +24,28 @@ const Collections = () => {
   }
 
   return (
-    <div className="min-h-screen pt-32 pb-20 px-4 luxury-gradient">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen pt-24 md:pt-28 pb-12 md:pb-16 luxury-gradient">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className="text-center mb-8 md:mb-12"
         >
-          <div className="flex items-center justify-center gap-3 text-xs md:text-sm uppercase tracking-[0.3em] md:tracking-[0.4em] text-secondary mb-4">
-            <span className="h-0.5 w-12 bg-secondary rounded-full"></span>
+          <div className="flex items-center justify-center gap-2 md:gap-3 text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.32em] text-secondary mb-3">
+            <span className="h-px w-8 md:w-12 bg-secondary rounded-full"></span>
             Explore Our World
-            <span className="h-0.5 w-12 bg-secondary rounded-full"></span>
+            <span className="h-px w-8 md:w-12 bg-secondary rounded-full"></span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold gold-text gold-glow mb-6">Exquisite Collections</h1>
-          <p className="max-w-2xl mx-auto text-muted text-base md:text-lg">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold gold-text gold-glow mb-3 md:mb-4">Exquisite Collections</h1>
+          <p className="max-w-xl mx-auto text-muted text-xs md:text-sm leading-relaxed">
             Discover a curated selection of olfactive masterpieces, each telling a unique story of luxury and refinement.
           </p>
         </motion.div>
 
         {loading ? (
           <LoadingSpinner />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        ) : categories.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
             {categories.map((category, index) => (
               <motion.div
                 key={category._id}
@@ -54,22 +54,22 @@ const Collections = () => {
                 transition={{ delay: index * 0.1 }}
                 className="group relative"
               >
-                <Link to={`/shop?category=${category.slug}`} className="block">
-                  <div className="surface-panel rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-secondary/10 group-hover:border-secondary/40 transition-all duration-500">
-                    <div className="relative h-[350px] md:h-[400px]">
+                <Link to={`/shop?category=${category.slug}`} className="block h-full">
+                  <div className="surface-panel h-full rounded-xl md:rounded-2xl overflow-hidden border border-secondary/10 group-hover:border-secondary/40 transition-all duration-500">
+                    <div className="relative h-[260px] sm:h-[300px] lg:h-[330px]">
                       <img
                         src={category.image?.url || 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1000'}
                         alt={category.name}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80"></div>
-                      <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                        <div className="flex items-center gap-2 text-secondary text-xs uppercase tracking-widest mb-3">
-                          <span className="w-8 h-px bg-secondary"></span>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent opacity-85"></div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5">
+                        <div className="flex items-center gap-2 text-secondary text-[10px] uppercase tracking-[0.2em] mb-2">
+                          <span className="w-6 h-px bg-secondary"></span>
                           {category.products?.length || 0} Fragrances
                         </div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">{category.name}</h2>
-                        <p className="text-gray-300 text-sm line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        <h2 className="text-xl md:text-2xl font-bold text-white mb-2 leading-tight">{category.name}</h2>
+                        <p className="text-gray-300 text-xs md:text-sm line-clamp-2 leading-relaxed opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-500">
                           {category.description || 'Explore our exclusive collection of premium fragrances.'}
                         </p>
                       </div>
@@ -78,6 +78,11 @@ const Collections = () => {
                 </Link>
               </motion.div>
             ))}
+          </div>
+        ) : (
+          <div className="surface-panel rounded-2xl border border-secondary/10 p-8 text-center">
+            <h2 className="text-xl font-bold text-white mb-2">No collections yet</h2>
+            <p className="text-muted text-sm">New fragrance collections will appear here soon.</p>
           </div>
         )}
       </div>

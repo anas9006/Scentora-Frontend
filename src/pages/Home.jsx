@@ -9,11 +9,36 @@ import { setWishlist } from '../redux/wishlistSlice'
 import { toast } from 'react-toastify'
 import MistBackground from '../components/MistBackground'
 import heroImage from '../assets/hero-perfume.png'
+import { FiAward, FiShoppingBag, FiTrendingUp } from 'react-icons/fi'
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const dispatch = useDispatch()
+
+  const sellerHighlights = [
+    {
+      icon: FiAward,
+      title: 'Oud Royal',
+      subtitle: 'Most gifted blend',
+      value: '4.9',
+      metric: 'Rating',
+    },
+    {
+      icon: FiTrendingUp,
+      title: 'Amber Noir',
+      subtitle: 'Trending this week',
+      value: '2.4k',
+      metric: 'Sold',
+    },
+    {
+      icon: FiShoppingBag,
+      title: 'Velvet Rose',
+      subtitle: 'Collector favorite',
+      value: '1.8k',
+      metric: 'Sold',
+    },
+  ]
 
   useEffect(() => {
     fetchFeaturedProducts()
@@ -22,7 +47,15 @@ const Home = () => {
   const fetchFeaturedProducts = async () => {
     try {
       const response = await productAPI.getFeaturedProducts()
-      setFeaturedProducts(response.data.products || [])
+      const featured = response.data.products || []
+
+      if (featured.length > 0) {
+        setFeaturedProducts(featured)
+        return
+      }
+
+      const fallbackResponse = await productAPI.getAllProducts({ limit: 8, sort: 'newest' })
+      setFeaturedProducts(fallbackResponse.data.products || [])
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
@@ -163,20 +196,60 @@ const Home = () => {
       {/* Featured Products */}
       <section className="section-padding bg-dark">
         <div className="max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl font-bold text-center mb-12"
-          >
-            Best <span className="gold-text">Sellers</span>
-          </motion.h2>
+          <div className="text-center mb-10 md:mb-12">
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-secondary uppercase tracking-[0.35em] text-xs mb-3"
+            >
+              Customer Favorites
+            </motion.p>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl md:text-4xl font-bold"
+            >
+              Best <span className="gold-text">Sellers</span>
+            </motion.h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10 md:mb-12">
+            {sellerHighlights.map((seller, index) => {
+              const Icon = seller.icon
+              return (
+                <motion.div
+                  key={seller.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.08 }}
+                  className="surface-panel rounded-2xl border border-secondary/10 p-4 md:p-5"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                      <Icon size={20} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-light truncate">{seller.title}</h3>
+                      <p className="text-xs text-[#b3aba1] mt-1">{seller.subtitle}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-secondary font-bold">{seller.value}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[#8f867a]">{seller.metric}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </div>
 
           {loading ? (
             <div className="text-center py-12 text-[#b3aba1]">
               <p>Loading products...</p>
             </div>
-          ) : (
+          ) : featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product, index) => (
                 <motion.div
@@ -193,6 +266,13 @@ const Home = () => {
                   />
                 </motion.div>
               ))}
+            </div>
+          ) : (
+            <div className="surface-panel rounded-2xl p-8 text-center border border-secondary/10">
+              <p className="text-[#b3aba1] mb-4">Best sellers will appear here once products are available.</p>
+              <Link to="/shop" className="btn-premium inline-flex px-5 py-3 rounded-lg text-sm">
+                Browse Shop
+              </Link>
             </div>
           )}
         </div>
@@ -239,7 +319,9 @@ const Home = () => {
                   <span className="text-3xl gold-text">S</span>
                 </div>
                 <p className="text-[#b3aba1] text-sm mb-6">Scentora is crafted for those who seek a luxurious statement. Every detail is curated to feel like a private atelier.</p>
-                <button className="btn-premium px-5 py-2.5 rounded-full text-sm">Discover the Collection</button>
+                <Link to="/collections" className="btn-premium inline-flex px-5 py-2.5 rounded-full text-sm">
+                  Discover the Collection
+                </Link>
               </div>
             </div>
           </div>

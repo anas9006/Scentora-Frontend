@@ -53,22 +53,22 @@ const Navbar = () => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass border-b border-secondary/10 shadow-xl' : 'bg-primary/90'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 gap-3">
           {/* Left Side: Hamburger & Logo */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
             <button 
               onClick={() => setIsOpen(!isOpen)} 
-              className="md:hidden hover:text-secondary focus:outline-none transition-colors"
+              className="lg:hidden hover:text-secondary focus:outline-none transition-colors flex-shrink-0"
             >
               {isOpen ? <FiX size={26} /> : <FiMenu size={26} />}
             </button>
             <Link to="/" className="flex-shrink-0">
-              <div className="text-2xl font-bold gold-text gold-glow">Scentora</div>
+              <div className="text-xl sm:text-2xl font-bold gold-text gold-glow">Scentora</div>
             </Link>
           </div>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8 text-sm text-gray-300">
+          <div className="hidden lg:flex items-center space-x-5 xl:space-x-8 text-sm text-gray-300">
             <Link to="/" className="hover:text-secondary transition">Home</Link>
             <Link to="/shop" className="hover:text-secondary transition">Shop</Link>
             <Link to="/collections" className="hover:text-secondary transition">Collections</Link>
@@ -77,9 +77,9 @@ const Navbar = () => {
           </div>
 
           {/* Right Side Actions: Profile, Wishlist, Cart */}
-          <div className="flex items-center space-x-3 md:space-x-5">
+          <div className="flex items-center space-x-3 lg:space-x-4 xl:space-x-5 flex-shrink-0">
             {/* Desktop Search */}
-            <div className="hidden md:block relative">
+            <div className="hidden xl:block relative">
               <input
                 type="text"
                 placeholder="Search..."
@@ -100,20 +100,23 @@ const Navbar = () => {
                     className="flex items-center hover:text-secondary transition"
                   >
                     <FiUser size={24} />
-                    <span className="hidden md:inline ml-2 text-sm">{user.firstName}</span>
+                    <span className="hidden xl:inline ml-2 text-sm">{user.firstName}</span>
                   </button>
                   {profileOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-primary border border-secondary/20 rounded shadow-2xl overflow-hidden">
-                      <Link to="/profile" className="block px-4 py-2 hover:bg-[#111111] transition-colors">Profile</Link>
+                      <Link to="/profile" onClick={() => setProfileOpen(false)} className="block px-4 py-2 hover:bg-[#111111] transition-colors">Profile</Link>
                       {user.role === 'customer' && (
-                        <Link to="/order" className="block px-4 py-2 hover:bg-[#111111] transition-colors">Orders</Link>
+                        <Link to="/order" onClick={() => setProfileOpen(false)} className="block px-4 py-2 hover:bg-[#111111] transition-colors">Orders</Link>
                       )}
                       {user.role === 'admin' && (
-                        <Link to="/admin" className="block px-4 py-2 hover:bg-[#111111] transition-colors">Admin Pannel</Link>
+                        <Link to="/admin" onClick={() => setProfileOpen(false)} className="block px-4 py-2 hover:bg-[#111111] transition-colors">Admin Pannel</Link>
                       )}
                       <button
                         type="button"
-                        onClick={handleLogout}
+                        onClick={() => {
+                          setProfileOpen(false)
+                          handleLogout()
+                        }}
                         className="block w-full text-left px-4 py-2 hover:bg-[#111111] transition-colors"
                       >
                         Logout
@@ -156,14 +159,14 @@ const Navbar = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="md:hidden pb-4 border-t border-secondary/10 pt-4 space-y-2"
+            className="lg:hidden pb-4 border-t border-secondary/10 pt-4 space-y-2"
           >
-            <Link to="/" className="block py-2 text-gray-300 hover:text-secondary transition">Home</Link>
-            <Link to="/shop" className="block py-2 text-gray-300 hover:text-secondary transition">Shop</Link>
-            <Link to="/collections" className="block py-2 text-gray-300 hover:text-secondary transition">Collections</Link>
-            <Link to="/about" className="block py-2 text-gray-300 hover:text-secondary transition">About</Link>
-            <Link to="/contact" className="block py-2 text-gray-300 hover:text-secondary transition">Contact</Link>
-            {!user && <Link to="/login" className="block py-2 text-gray-300 hover:text-secondary transition">Login</Link>}
+            <Link to="/" onClick={() => setIsOpen(false)} className="block py-2 text-gray-300 hover:text-secondary transition">Home</Link>
+            <Link to="/shop" onClick={() => setIsOpen(false)} className="block py-2 text-gray-300 hover:text-secondary transition">Shop</Link>
+            <Link to="/collections" onClick={() => setIsOpen(false)} className="block py-2 text-gray-300 hover:text-secondary transition">Collections</Link>
+            <Link to="/about" onClick={() => setIsOpen(false)} className="block py-2 text-gray-300 hover:text-secondary transition">About</Link>
+            <Link to="/contact" onClick={() => setIsOpen(false)} className="block py-2 text-gray-300 hover:text-secondary transition">Contact</Link>
+            {!user && <Link to="/login" onClick={() => setIsOpen(false)} className="block py-2 text-gray-300 hover:text-secondary transition">Login</Link>}
           </motion.div>
         )}
       </div>

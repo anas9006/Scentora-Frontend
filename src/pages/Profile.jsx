@@ -1,38 +1,79 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiUser, FiLock, FiPackage, FiEdit2, FiSave, FiX, FiCheckCircle } from 'react-icons/fi'
+import {
+  FiUser, FiLock, FiPackage, FiEdit2, FiSave, FiX,
+  FiCheckCircle, FiEye, FiEyeOff, FiShield,
+} from 'react-icons/fi'
 import { toast } from 'react-toastify'
 import { authAPI, orderAPI } from '../services/apiServices'
 import { updateUser } from '../redux/authSlice'
 
+/* ── password strength helper ── */
+const getStrength = (pw) => {
+  if (!pw) return 0
+  let s = 0
+  if (pw.length >= 8)          s++
+  if (/[A-Z]/.test(pw))        s++
+  if (/[0-9]/.test(pw))        s++
+  if (/[^A-Za-z0-9]/.test(pw)) s++
+  return s
+}
+const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong']
+const strengthColor = ['', '#ef4444', '#f97316', '#eab308', '#22c55e']
+
+/* ── password input with show/hide ── */
+const PasswordField = ({ label, value, onChange, required }) => {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="space-y-2">
+      <label className="text-sm text-muted uppercase tracking-widest">{label}</label>
+      <div className="relative">
+        <input
+          type={show ? 'text' : 'password'}
+          required={required}
+          value={value}
+          onChange={onChange}
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:border-accent transition"
+        />
+        <button
+          type="button"
+          onClick={() => setShow((s) => !s)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-accent transition"
+          tabIndex={-1}
+        >
+          {show ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const Profile = () => {
   const { user } = useSelector((state) => state.auth)
-  const dispatch = useDispatch()
+  const dispatch  = useDispatch()
   const [activeTab, setActiveTab] = useState('details')
-  const [loading, setLoading] = useState(false)
-  const [orders, setOrders] = useState([])
+  const [loading,   setLoading]   = useState(false)
+  const [orders,    setOrders]    = useState([])
   const [isEditing, setIsEditing] = useState(false)
 
-  // Profile Form State
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
+    lastName:  user?.lastName  || '',
+    email:     user?.email     || '',
+    phone:     user?.phone     || '',
   })
 
-  // Password Form State
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
-    newPassword: '',
+    newPassword:     '',
     confirmPassword: '',
   })
 
+  const pwStrength = getStrength(passwordData.newPassword)
+
   useEffect(() => {
-    if (activeTab === 'orders') {
-      fetchOrders()
-    }
+    if (activeTab === 'orders') fetchOrders()
   }, [activeTab])
 
   const fetchOrders = async () => {
@@ -40,7 +81,7 @@ const Profile = () => {
       setLoading(true)
       const res = await orderAPI.getOrders()
       setOrders(res.data.orders)
-    } catch (error) {
+    } catch {
       toast.error('Failed to fetch orders')
     } finally {
       setLoading(false)
@@ -64,9 +105,8 @@ const Profile = () => {
 
   const handlePasswordUpdate = async (e) => {
     e.preventDefault()
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
+    if (passwordData.newPassword !== passwordData.confirmPassword)
       return toast.error('Passwords do not match')
-    }
     try {
       setLoading(true)
       await authAPI.updatePassword(passwordData)
@@ -80,73 +120,101 @@ const Profile = () => {
   }
 
   const tabs = [
-    { id: 'details', label: 'My Details', icon: <FiUser /> },
-    { id: 'security', label: 'Security', icon: <FiLock /> },
-    { id: 'orders', label: 'My Orders', icon: <FiPackage /> },
+    { id: 'details',  label: 'My Details', icon: <FiUser    size={18} /> },
+    { id: 'security', label: 'Security',   icon: <FiShield  size={18} /> },
+    { id: 'orders',   label: 'My Orders',  icon: <FiPackage size={18} /> },
   ]
 
   return (
-    <div className="min-h-screen pt-32 pb-20 px-4 sm:px-6 lg:px-8 luxury-gradient">
+    <div className="min-h-screen pt-28 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 luxury-gradient">
       <div className="max-w-5xl mx-auto">
+
+        {/* ── Page Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-10 sm:mb-12"
         >
-          <h1 className="text-4xl md:text-5xl font-bold gold-text gold-glow mb-4">My Account</h1>
-          <p className="text-muted text-lg">Manage your personal information and track your fragrance journey.</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold gold-text gold-glow mb-3">
+            My Account
+          </h1>
+          <p className="text-muted text-base sm:text-lg">
+            Manage your personal information and track your fragrance journey.
+          </p>
         </motion.div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Tabs */}
-          <div className="lg:w-1/4">
+        {/* ── Mobile / Tablet Tab Bar (hidden on lg+) ── */}
+        <div className="flex lg:hidden surface-panel rounded-2xl p-2 gap-1 mb-6">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 ${
+                activeTab === tab.id
+                  ? 'bg-accent text-[#D4AF37]'
+                  : 'hover:bg-white/5 text-muted hover:text-light'
+              }`}
+            >
+              <span className="text-base sm:text-lg">{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* ── Layout ── */}
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+
+          {/* ── Desktop Sidebar ── */}
+          <div className="hidden lg:block lg:w-1/4">
             <div className="surface-panel rounded-2xl p-4 sticky top-32">
-              <div className="flex flex-row lg:flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-left w-full ${
                       activeTab === tab.id
                         ? 'bg-accent text-[#D4AF37] font-bold'
                         : 'hover:bg-white/5 text-muted hover:text-light'
                     }`}
                   >
-                    <span className="text-xl">{tab.icon}</span>
-                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="text-xl flex-shrink-0">{tab.icon}</span>
+                    <span>{tab.label}</span>
                   </button>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Main Content Area */}
-          <div className="lg:w-3/4">
+          {/* ── Main Content ── */}
+          <div className="flex-1 min-w-0">
             <AnimatePresence mode="wait">
+
+              {/* ── Details Tab ── */}
               {activeTab === 'details' && (
                 <motion.div
                   key="details"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="surface-panel rounded-3xl p-8"
+                  className="surface-panel rounded-3xl p-5 sm:p-8"
                 >
-                  <div className="flex justify-between items-center mb-8">
-                    <h2 className="text-2xl font-semibold text-light flex items-center gap-2">
+                  <div className="flex flex-wrap justify-between items-center gap-3 mb-7">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-light flex items-center gap-2">
                       <FiUser className="text-accent" /> Personal Information
                     </h2>
                     {!isEditing && (
                       <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-2 text-accent hover:text-accent-soft transition"
+                        className="flex items-center gap-2 text-accent hover:text-accent-soft transition text-sm sm:text-base"
                       >
-                        <FiEdit2 /> Edit Profile
+                        <FiEdit2 size={15} /> Edit Profile
                       </button>
                     )}
                   </div>
 
-                  <form onSubmit={handleProfileUpdate} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <form onSubmit={handleProfileUpdate} className="space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="space-y-2">
                         <label className="text-sm text-muted uppercase tracking-widest">First Name</label>
                         <input
@@ -186,11 +254,10 @@ const Profile = () => {
                       <div className="space-y-2">
                         <label className="text-sm text-muted uppercase tracking-widest">Phone Number</label>
                         <input
-                          type="text"
+                          type="tel"
                           disabled={!isEditing}
                           value={profileData.phone}
                           onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                          placeholder="+1 (555) 000-0000"
                           className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition ${
                             !isEditing ? 'opacity-60 cursor-not-allowed' : ''
                           }`}
@@ -199,13 +266,13 @@ const Profile = () => {
                     </div>
 
                     {isEditing && (
-                      <div className="flex gap-4 pt-4">
+                      <div className="flex flex-wrap gap-3 pt-2">
                         <button
                           type="submit"
                           disabled={loading}
-                          className="btn-premium px-8 py-3 rounded-xl flex items-center gap-2"
+                          className="btn-premium px-6 sm:px-8 py-3 rounded-xl flex items-center gap-2 text-sm sm:text-base"
                         >
-                          <FiSave /> {loading ? 'Saving...' : 'Save Changes'}
+                          <FiSave size={15} /> {loading ? 'Saving...' : 'Save Changes'}
                         </button>
                         <button
                           type="button"
@@ -213,14 +280,14 @@ const Profile = () => {
                             setIsEditing(false)
                             setProfileData({
                               firstName: user?.firstName || '',
-                              lastName: user?.lastName || '',
-                              email: user?.email || '',
-                              phone: user?.phone || '',
+                              lastName:  user?.lastName  || '',
+                              email:     user?.email     || '',
+                              phone:     user?.phone     || '',
                             })
                           }}
-                          className="bg-white/5 hover:bg-white/10 text-light px-8 py-3 rounded-xl flex items-center gap-2 transition"
+                          className="bg-white/5 hover:bg-white/10 text-light px-6 sm:px-8 py-3 rounded-xl flex items-center gap-2 transition text-sm sm:text-base"
                         >
-                          <FiX /> Cancel
+                          <FiX size={15} /> Cancel
                         </button>
                       </div>
                     )}
@@ -228,94 +295,121 @@ const Profile = () => {
                 </motion.div>
               )}
 
+              {/* ── Security Tab ── */}
               {activeTab === 'security' && (
                 <motion.div
                   key="security"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="surface-panel rounded-3xl p-8"
+                  className="surface-panel rounded-3xl p-5 sm:p-8"
                 >
-                  <h2 className="text-2xl font-semibold text-light flex items-center gap-2 mb-8">
-                    <FiLock className="text-accent" /> Password & Security
-                  </h2>
+                  <div className="flex flex-col items-center text-center mb-7">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-light flex items-center gap-2 mb-2">
+                      <FiLock className="text-accent" /> Password & Security
+                    </h2>
+                    <p className="text-muted text-sm">
+                      Use a strong password — at least 8 characters with numbers and symbols.
+                    </p>
+                  </div>
 
-                  <form onSubmit={handlePasswordUpdate} className="max-w-md space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-sm text-muted uppercase tracking-widest">Current Password</label>
-                      <input
-                        type="password"
-                        required
-                        value={passwordData.currentPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm text-muted uppercase tracking-widest">New Password</label>
-                      <input
-                        type="password"
+                  <form onSubmit={handlePasswordUpdate} className="w-full max-w-md mx-auto space-y-5">
+                    <PasswordField
+                      label="Current Password"
+                      required
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                    />
+
+                    {/* New password + strength bar */}
+                    <div className="space-y-1">
+                      <PasswordField
+                        label="New Password"
                         required
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition"
                       />
+                      {passwordData.newPassword.length > 0 && (
+                        <div className="pt-1">
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4].map((i) => (
+                              <div
+                                key={i}
+                                className="flex-1 h-1 rounded-full transition-all duration-300"
+                                style={{
+                                  background: i <= pwStrength
+                                    ? strengthColor[pwStrength]
+                                    : 'rgba(255,255,255,0.08)',
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-xs mt-1" style={{ color: strengthColor[pwStrength] }}>
+                            {strengthLabel[pwStrength]}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm text-muted uppercase tracking-widest">Confirm New Password</label>
-                      <input
-                        type="password"
-                        required
-                        value={passwordData.confirmPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition"
-                      />
-                    </div>
+
+                    <PasswordField
+                      label="Confirm New Password"
+                      required
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    />
 
                     <button
                       type="submit"
                       disabled={loading}
-                      className="btn-premium w-full py-4 rounded-xl flex items-center justify-center gap-2 mt-4"
+                      className="btn-premium w-full py-4 rounded-xl flex items-center justify-center gap-2 mt-2"
                     >
-                      <FiCheckCircle /> {loading ? 'Updating...' : 'Update Password'}
+                      <FiCheckCircle size={16} /> {loading ? 'Updating...' : 'Update Password'}
                     </button>
                   </form>
                 </motion.div>
               )}
 
+              {/* ── Orders Tab ── */}
               {activeTab === 'orders' && (
                 <motion.div
                   key="orders"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
+                  className="space-y-5"
                 >
-                  <h2 className="text-2xl font-semibold text-light flex items-center gap-2 mb-4">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-light flex items-center gap-2 mb-4">
                     <FiPackage className="text-accent" /> Order History
                   </h2>
 
                   {loading ? (
                     <div className="flex justify-center py-12">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-accent"></div>
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-accent" />
                     </div>
                   ) : orders.length > 0 ? (
                     orders.map((order) => (
-                      <div key={order._id} className="surface-panel rounded-2xl p-6 overflow-hidden">
-                        <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
+                      <div key={order._id} className="surface-panel rounded-2xl overflow-hidden">
+                        {/* Meta strip */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 sm:p-6 border-b border-white/5">
                           <div>
                             <p className="text-xs text-muted uppercase tracking-widest mb-1">Order ID</p>
-                            <p className="text-sm font-mono text-light">#{order._id.toUpperCase()}</p>
+                            <p className="text-xs sm:text-sm font-mono text-light">
+                              #{order._id.slice(-8).toUpperCase()}
+                            </p>
                           </div>
                           <div>
                             <p className="text-xs text-muted uppercase tracking-widest mb-1">Date</p>
-                            <p className="text-sm text-light">{new Date(order.createdAt).toLocaleDateString()}</p>
+                            <p className="text-xs sm:text-sm text-light">
+                              {new Date(order.createdAt).toLocaleDateString('en-PK', {
+                                day: '2-digit', month: 'short', year: 'numeric',
+                              })}
+                            </p>
                           </div>
                           <div>
                             <p className="text-xs text-muted uppercase tracking-widest mb-1">Status</p>
                             <span className={`text-xs px-3 py-1 rounded-full font-bold uppercase ${
                               order.orderStatus === 'delivered' ? 'bg-green-500/20 text-green-400' :
-                              order.orderStatus === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                              order.orderStatus === 'pending'   ? 'bg-yellow-500/20 text-yellow-400' :
                               'bg-accent/20 text-accent'
                             }`}>
                               {order.orderStatus}
@@ -323,23 +417,34 @@ const Profile = () => {
                           </div>
                           <div>
                             <p className="text-xs text-muted uppercase tracking-widest mb-1">Total</p>
-                            <p className="text-lg font-bold text-accent">Rs. {order.totalAmount.toFixed(2)}</p>
+                            <p className="text-base sm:text-lg font-bold text-accent">
+                              Rs. {order.totalAmount.toFixed(2)}
+                            </p>
                           </div>
                         </div>
 
-                        <div className="space-y-4">
+                        {/* Items */}
+                        <div className="p-4 sm:p-6 space-y-4">
                           {order.items.map((item, idx) => (
-                            <div key={idx} className="flex items-center gap-4 border-t border-white/5 pt-4">
-                              <div className="w-16 h-16 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
+                            <div
+                              key={idx}
+                              className={`flex items-center gap-4 ${idx > 0 ? 'border-t border-white/5 pt-4' : ''}`}
+                            >
+                              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
                                 <img
-                                  src={item.product?.images?.[0] || 'https://via.placeholder.com/150'}
+                                  src={item.product?.images?.[0]?.url || 'https://via.placeholder.com/150'}
                                   alt={item.product?.name}
+                                  loading="lazy"
                                   className="w-full h-full object-cover"
                                 />
                               </div>
-                              <div className="flex-1">
-                                <p className="text-light font-medium">{item.product?.name}</p>
-                                <p className="text-sm text-muted">Qty: {item.quantity} × Rs. {item.price}</p>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-light font-medium text-sm sm:text-base truncate">
+                                  {item.product?.name}
+                                </p>
+                                <p className="text-xs sm:text-sm text-muted mt-0.5">
+                                  Qty: {item.quantity} × Rs. {item.price}
+                                </p>
                               </div>
                             </div>
                           ))}
@@ -347,14 +452,17 @@ const Profile = () => {
                       </div>
                     ))
                   ) : (
-                    <div className="surface-panel rounded-3xl p-12 text-center">
+                    <div className="surface-panel rounded-3xl p-10 sm:p-12 text-center">
                       <FiPackage size={48} className="text-muted mx-auto mb-4 opacity-20" />
-                      <p className="text-muted">You haven't placed any orders yet.</p>
-                      <button className="text-accent mt-4 hover:underline">Start Shopping</button>
+                      <p className="text-muted text-sm sm:text-base">You haven't placed any orders yet.</p>
+                      <button className="text-accent mt-4 hover:underline text-sm sm:text-base">
+                        Start Shopping
+                      </button>
                     </div>
                   )}
                 </motion.div>
               )}
+
             </AnimatePresence>
           </div>
         </div>

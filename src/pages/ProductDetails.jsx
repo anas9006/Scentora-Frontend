@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { FiShoppingCart, FiHeart, FiStar } from 'react-icons/fi'
 import { productAPI, cartAPI, wishlistAPI, reviewAPI } from '../services/apiServices'
 import { toast } from 'react-toastify'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { setCart } from '../redux/cartSlice'
 import { setWishlist } from '../redux/wishlistSlice'
 
@@ -15,7 +15,7 @@ const ProductDetails = () => {
   const [selectedImage, setSelectedImage] = useState(0)
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
-  const [isWishlisted, setIsWishlisted] = useState(false)
+  const wishlistItems = useSelector((state) => state.wishlist.items)
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -60,7 +60,6 @@ const ProductDetails = () => {
     try {
       const res = await wishlistAPI.addToWishlist({ productId: product._id })
       dispatch(setWishlist({ products: res.data.wishlist.products }))
-      setIsWishlisted(true)
       toast.success('Added to wishlist!')
     } catch (error) {
       toast.error('Failed to add to wishlist')
@@ -83,6 +82,8 @@ const ProductDetails = () => {
   const discount = product.discountPrice
     ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
     : 0
+  const getProductId = (item) => item?._id || item?.product?._id || item?.product || item
+  const isWishlisted = wishlistItems.some((item) => String(getProductId(item)) === String(product._id))
 
   return (
     <div className="min-h-screen bg-primary pt-24 pb-12">
