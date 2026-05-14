@@ -2,10 +2,12 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { FiShoppingCart, FiHeart } from 'react-icons/fi'
 import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
   const [isAddingToCart, setIsAddingToCart] = React.useState(false)
   const wishlistItems = useSelector((state) => state.wishlist.items)
+  const navigate = useNavigate()
 
   const getProductId = (item) => item?._id || item?.product?._id || item?.product || item
   const isWishlisted = wishlistItems.some((item) => String(getProductId(item)) === String(product._id))
@@ -17,7 +19,8 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
   return (
     <motion.div
       whileHover={{ y: -10 }}
-      className="bg-primary border border-secondary rounded-lg overflow-hidden group"
+      className="bg-primary border border-secondary rounded-lg overflow-hidden group cursor-pointer"
+      onClick={() => navigate(`/product/${product._id}`)}
     >
       {/* Image Container */}
       <div className="relative overflow-hidden h-60 bg-gray-800">
@@ -38,7 +41,8 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
         <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition hidden md:flex items-center justify-center gap-4">
           <motion.button
             whileHover={{ scale: 1.1 }}
-            onClick={async () => {
+            onClick={async (e) => {
+              e.stopPropagation()
               setIsAddingToCart(true)
               await onAddToCart()
               setIsAddingToCart(false)
@@ -54,7 +58,10 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.1 }}
-            onClick={onAddToWishlist}
+            onClick={(e) => {
+              e.stopPropagation()
+              onAddToWishlist()
+            }}
             className={`p-3 rounded-full transition ${isWishlisted ? 'bg-red-600' : 'bg-secondary text-primary hover:bg-yellow-400'}`}
           >
             <FiHeart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />
@@ -80,16 +87,17 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
         {/* Price and Mobile Actions */}
         <div className="flex items-center justify-between mt-1">
           <div className="flex items-center gap-2">
-            <span className="text-secondary font-bold">${product.discountPrice || product.price}</span>
+            <span className="text-secondary font-bold">Rs.{product.discountPrice || product.price}</span>
             {product.discountPrice && (
-              <span className="text-gray-500 text-sm line-through">${product.price}</span>
+              <span className="text-gray-500 text-sm line-through">Rs.{product.price}</span>
             )}
           </div>
           
           {/* Mobile Actions */}
           <div className="flex items-center gap-2 md:hidden">
             <button
-              onClick={async () => {
+              onClick={async (e) => {
+                e.stopPropagation()
                 setIsAddingToCart(true)
                 await onAddToCart()
                 setIsAddingToCart(false)
@@ -104,7 +112,10 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
               )}
             </button>
             <button
-              onClick={onAddToWishlist}
+              onClick={(e) => {
+                e.stopPropagation()
+                onAddToWishlist()
+              }}
               className={`p-2 rounded-full transition ${isWishlisted ? 'bg-red-600' : 'bg-[#111111] border border-secondary/20 text-gray-300'}`}
             >
               <FiHeart size={16} fill={isWishlisted ? 'currentColor' : 'none'} />

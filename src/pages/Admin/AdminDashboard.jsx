@@ -174,7 +174,7 @@ const AdminDashboard = () => {
     return 'text-blue-400'
   }
 
-  const formatCurrency = (amount) => `$${Number(amount || 0).toFixed(2)}`
+  const formatCurrency = (amount) => `Rs${Number(amount || 0).toFixed(2)}`
 
   if (!user || user.role !== 'admin') {
     return <Navigate to="/" replace />
@@ -190,7 +190,7 @@ const AdminDashboard = () => {
     {
       icon: FiBarChart,
       title: 'Total Revenue',
-      value: `$${stats.totalRevenue.toFixed(2)}`,
+      value: `Rs${stats.totalRevenue.toFixed(2)}`,
       color: 'text-green-500',
     },
     {
@@ -415,7 +415,7 @@ const AdminDashboard = () => {
                             <h3 className="text-light font-bold text-sm truncate">{prod.name}</h3>
                             <p className="text-muted text-xs truncate">{prod.brand}</p>
                           </div>
-                          <span className="text-light font-bold text-sm whitespace-nowrap">${prod.price}</span>
+                          <span className="text-light font-bold text-sm whitespace-nowrap">Rs.{prod.price}</span>
                         </div>
                         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                           <span className="bg-secondary/10 text-secondary px-2.5 py-1 rounded-full font-bold uppercase">

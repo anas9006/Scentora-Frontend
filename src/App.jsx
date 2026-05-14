@@ -24,6 +24,7 @@ import Contact from './pages/Contact'
 import OrderConfirmation from './pages/OrderConfirmation'
 import Orders from './pages/Orders'
 import OrderDetails from './pages/OrderDetails'
+import ProductReviews from './pages/ProductReviews'
 import ProtectedRoute from './components/ProtectedRoute'
 import ScrollToTop from './components/ScrollToTop'
 
@@ -67,6 +68,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/product/:id" element={<ProductDetails />} />
+            <Route path="/product/:id/reviews" element={<ProductReviews />} />
             <Route
               path="/cart"
               element={
@@ -137,7 +139,7 @@ function App() {
         </main>
         <ScrollToTop />
         <Footer />
-        <ToastContainer />
+        <ToastContainer autoClose={2000} />
       </div>
     </Router>
   )

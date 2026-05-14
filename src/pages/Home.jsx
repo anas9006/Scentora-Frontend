@@ -1,87 +1,95 @@
-import React, { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import ProductCard from '../components/ProductCard'
-import { productAPI, cartAPI, wishlistAPI } from '../services/apiServices'
-import { useDispatch } from 'react-redux'
-import { setCart } from '../redux/cartSlice'
-import { setWishlist } from '../redux/wishlistSlice'
-import { toast } from 'react-toastify'
-import MistBackground from '../components/MistBackground'
-import heroImage from '../assets/hero-perfume.png'
-import { FiAward, FiShoppingBag, FiTrendingUp } from 'react-icons/fi'
+import React, { useEffect, useState } from "react";
+import { calcLength, motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import ProductCard from "../components/ProductCard";
+import { productAPI, cartAPI, wishlistAPI } from "../services/apiServices";
+import { useDispatch } from "react-redux";
+import { setCart } from "../redux/cartSlice";
+import { setWishlist } from "../redux/wishlistSlice";
+import { toast } from "react-toastify";
+import MistBackground from "../components/MistBackground";
+import heroImage from "../assets/hero-perfume.png";
+import { FiAward, FiShoppingBag, FiTrendingUp } from "react-icons/fi";
 
 const Home = () => {
-  const [featuredProducts, setFeaturedProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const dispatch = useDispatch()
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
 
   const sellerHighlights = [
     {
       icon: FiAward,
-      title: 'Oud Royal',
-      subtitle: 'Most gifted blend',
-      value: '4.9',
-      metric: 'Rating',
+      title: "Oud Royal",
+      subtitle: "Most gifted blend",
+      value: "4.9",
+      metric: "Rating",
     },
     {
       icon: FiTrendingUp,
-      title: 'Amber Noir',
-      subtitle: 'Trending this week',
-      value: '2.4k',
-      metric: 'Sold',
+      title: "Amber Noir",
+      subtitle: "Trending this week",
+      value: "2.4k",
+      metric: "Sold",
     },
     {
       icon: FiShoppingBag,
-      title: 'Velvet Rose',
-      subtitle: 'Collector favorite',
-      value: '1.8k',
-      metric: 'Sold',
+      title: "Velvet Rose",
+      subtitle: "Collector favorite",
+      value: "1.8k",
+      metric: "Sold",
     },
-  ]
+  ];
 
   useEffect(() => {
-    fetchFeaturedProducts()
-  }, [])
+    fetchFeaturedProducts();
+  }, []);
 
   const fetchFeaturedProducts = async () => {
     try {
-      const response = await productAPI.getFeaturedProducts()
-      const featured = response.data.products || []
+      const response = await productAPI.getFeaturedProducts();
+      const featured = response.data.products || [];
 
       if (featured.length > 0) {
-        setFeaturedProducts(featured)
-        return
+        setFeaturedProducts(featured);
+        return;
       }
 
-      const fallbackResponse = await productAPI.getAllProducts({ limit: 8, sort: 'newest' })
-      setFeaturedProducts(fallbackResponse.data.products || [])
+      const fallbackResponse = await productAPI.getAllProducts({
+        limit: 8,
+        sort: "newest",
+      });
+      setFeaturedProducts(fallbackResponse.data.products || []);
     } catch (error) {
-      console.error('Error fetching products:', error)
+      console.error("Error fetching products:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleAddToCart = async (product) => {
     try {
-      const res = await cartAPI.addToCart({ productId: product._id, quantity: 1 })
-      dispatch(setCart(res.data.cart))
-      toast.success('Added to cart!')
+      const res = await cartAPI.addToCart({
+        productId: product._id,
+        quantity: 1,
+      });
+
+      dispatch(setCart(res.data.cart));
+      toast.success("Added to cart!");
     } catch (error) {
-      toast.error('Failed to add to cart')
+      const message = error.response?.data?.message || "Failed to add to cart";
+ toast.error(message);
     }
-  }
+  };
 
   const handleAddToWishlist = async (product) => {
     try {
-      const res = await wishlistAPI.addToWishlist({ productId: product._id })
-      dispatch(setWishlist({ products: res.data.wishlist.products }))
-      toast.success('Added to wishlist!')
+      const res = await wishlistAPI.addToWishlist({ productId: product._id });
+      dispatch(setWishlist({ products: res.data.wishlist.products }));
+      toast.success("Added to wishlist!");
     } catch (error) {
-      toast.error('Failed to add to wishlist')
+      toast.error("Failed to add to wishlist");
     }
-  }
+  };
 
   return (
     <div className="relative">
@@ -100,13 +108,19 @@ const Home = () => {
               Premium Collection
             </div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-              Sculpting <span className="gold-text gold-glow">Dreams</span> in a Bottle
+              Sculpting <span className="gold-text gold-glow">Dreams</span> in a
+              Bottle
             </h1>
             <p className="max-w-2xl text-lg text-[#bdb4a7]">
-              Explore an elite world of bespoke perfumes crafted for the modern connoisseur. Scentora blends art and olfactive luxury into every bottle.
+              Explore an elite world of bespoke perfumes crafted for the modern
+              connoisseur. Scentora blends art and olfactive luxury into every
+              bottle.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/shop" className="btn-premium px-6 py-3 rounded font-bold text-sm">
+              <Link
+                to="/shop"
+                className="btn-premium px-6 py-3 rounded font-bold text-sm"
+              >
                 View All Perfumes
               </Link>
               <button className="border border-secondary text-secondary px-6 py-3 rounded font-semibold text-sm hover:bg-secondary/20 transition">
@@ -116,11 +130,15 @@ const Home = () => {
 
             <div className="grid grid-cols-2 gap-4 text-sm text-[#b3aba1]">
               <div className="surface-panel p-4 rounded-2xl">
-                <p className="text-secondary uppercase tracking-[0.2em] mb-1 text-[10px]">Timeless scents</p>
+                <p className="text-secondary uppercase tracking-[0.2em] mb-1 text-[10px]">
+                  Timeless scents
+                </p>
                 <p className="font-semibold text-lg">100+</p>
               </div>
               <div className="surface-panel p-4 rounded-2xl">
-                <p className="text-secondary uppercase tracking-[0.2em] mb-1 text-[10px]">Unique blends</p>
+                <p className="text-secondary uppercase tracking-[0.2em] mb-1 text-[10px]">
+                  Unique blends
+                </p>
                 <p className="font-semibold text-lg">80k+</p>
               </div>
             </div>
@@ -137,19 +155,19 @@ const Home = () => {
               <div className="relative rounded-[1.25rem] overflow-hidden bg-[#111111]">
                 <div className="w-full h-[400px] flex items-center justify-center relative group">
                   <motion.div
-                    animate={{ 
+                    animate={{
                       y: [0, -15, 0],
                     }}
-                    transition={{ 
+                    transition={{
                       duration: 4,
                       repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: "easeInOut",
                     }}
                     className="relative z-10"
                   >
-                    <img 
-                      src={heroImage} 
-                      alt="Scentora Signature Fragrance" 
+                    <img
+                      src={heroImage}
+                      alt="Scentora Signature Fragrance"
                       className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                     />
                   </motion.div>
@@ -175,20 +193,27 @@ const Home = () => {
           </motion.h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            {['Oud Elite', 'Golden Floral', 'Noir Spice'].map((collection, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.15 }}
-                className="surface-panel p-6 rounded-[1.5rem] border border-secondary/15 hover:border-secondary/30 transition cursor-pointer"
-              >
-                <p className="text-secondary uppercase tracking-[0.3em] mb-3 text-[10px]">Signature</p>
-                <h3 className="text-xl font-semibold mb-3">{collection}</h3>
-                <p className="text-[#b3aba1] text-sm">A refined sensory journey built for collectors who enjoy rare, handcrafted fragrances.</p>
-              </motion.div>
-            ))}
+            {["Oud Elite", "Golden Floral", "Noir Spice"].map(
+              (collection, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.15 }}
+                  className="surface-panel p-6 rounded-[1.5rem] border border-secondary/15 hover:border-secondary/30 transition cursor-pointer"
+                >
+                  <p className="text-secondary uppercase tracking-[0.3em] mb-3 text-[10px]">
+                    Signature
+                  </p>
+                  <h3 className="text-xl font-semibold mb-3">{collection}</h3>
+                  <p className="text-[#b3aba1] text-sm">
+                    A refined sensory journey built for collectors who enjoy
+                    rare, handcrafted fragrances.
+                  </p>
+                </motion.div>
+              ),
+            )}
           </div>
         </div>
       </section>
@@ -217,7 +242,7 @@ const Home = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10 md:mb-12">
             {sellerHighlights.map((seller, index) => {
-              const Icon = seller.icon
+              const Icon = seller.icon;
               return (
                 <motion.div
                   key={seller.title}
@@ -232,16 +257,22 @@ const Home = () => {
                       <Icon size={20} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-light truncate">{seller.title}</h3>
-                      <p className="text-xs text-[#b3aba1] mt-1">{seller.subtitle}</p>
+                      <h3 className="font-bold text-light truncate">
+                        {seller.title}
+                      </h3>
+                      <p className="text-xs text-[#b3aba1] mt-1">
+                        {seller.subtitle}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-secondary font-bold">{seller.value}</p>
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-[#8f867a]">{seller.metric}</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[#8f867a]">
+                        {seller.metric}
+                      </p>
                     </div>
                   </div>
                 </motion.div>
-              )
+              );
             })}
           </div>
 
@@ -269,8 +300,13 @@ const Home = () => {
             </div>
           ) : (
             <div className="surface-panel rounded-2xl p-8 text-center border border-secondary/10">
-              <p className="text-[#b3aba1] mb-4">Best sellers will appear here once products are available.</p>
-              <Link to="/shop" className="btn-premium inline-flex px-5 py-3 rounded-lg text-sm">
+              <p className="text-[#b3aba1] mb-4">
+                Best sellers will appear here once products are available.
+              </p>
+              <Link
+                to="/shop"
+                className="btn-premium inline-flex px-5 py-3 rounded-lg text-sm"
+              >
                 Browse Shop
               </Link>
             </div>
@@ -286,25 +322,35 @@ const Home = () => {
               Journey of <span className="gold-text">Elysian Elegance</span>
             </h2>
             <p className="text-[#b3aba1] text-sm mb-6">
-              Follow the path of artistry and craftsmanship behind every Scentora creation. Each bottle captures a timeless story of luxury.
+              Follow the path of artistry and craftsmanship behind every
+              Scentora creation. Each bottle captures a timeless story of
+              luxury.
             </p>
             <div className="space-y-5">
               {[
                 {
-                  title: 'Crafted in Small Batches',
-                  description: 'Every scent is blended with precision for a rich, long-lasting experience.',
+                  title: "Crafted in Small Batches",
+                  description:
+                    "Every scent is blended with precision for a rich, long-lasting experience.",
                 },
                 {
-                  title: 'Exquisite Ingredients',
-                  description: 'A curated selection of rare oud, florals, and oriental spices.',
+                  title: "Exquisite Ingredients",
+                  description:
+                    "A curated selection of rare oud, florals, and oriental spices.",
                 },
                 {
-                  title: 'Designed for Elegance',
-                  description: 'A bold luxury statement shaped for modern collectors.',
+                  title: "Designed for Elegance",
+                  description:
+                    "A bold luxury statement shaped for modern collectors.",
                 },
               ].map((item) => (
-                <div key={item.title} className="surface-panel p-5 rounded-[1.25rem] border border-secondary/10">
-                  <p className="text-secondary uppercase tracking-[0.3em] mb-1 text-[10px]">{item.title}</p>
+                <div
+                  key={item.title}
+                  className="surface-panel p-5 rounded-[1.25rem] border border-secondary/10"
+                >
+                  <p className="text-secondary uppercase tracking-[0.3em] mb-1 text-[10px]">
+                    {item.title}
+                  </p>
                   <p className="text-[#b3aba1] text-sm">{item.description}</p>
                 </div>
               ))}
@@ -318,8 +364,14 @@ const Home = () => {
                 <div className="mb-6 inline-flex items-center justify-center rounded-full border border-secondary/20 bg-[#111111] w-24 h-24 mx-auto">
                   <span className="text-3xl gold-text">S</span>
                 </div>
-                <p className="text-[#b3aba1] text-sm mb-6">Scentora is crafted for those who seek a luxurious statement. Every detail is curated to feel like a private atelier.</p>
-                <Link to="/collections" className="btn-premium inline-flex px-5 py-2.5 rounded-full text-sm">
+                <p className="text-[#b3aba1] text-sm mb-6">
+                  Scentora is crafted for those who seek a luxurious statement.
+                  Every detail is curated to feel like a private atelier.
+                </p>
+                <Link
+                  to="/collections"
+                  className="btn-premium inline-flex px-5 py-2.5 rounded-full text-sm"
+                >
                   Discover the Collection
                 </Link>
               </div>
@@ -328,7 +380,7 @@ const Home = () => {
         </div>
       </section>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

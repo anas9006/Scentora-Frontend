@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiPackage, FiMapPin, FiCreditCard, FiArrowLeft, FiClock, FiCheckCircle, FiTruck } from 'react-icons/fi'
+import { FiPackage, FiMapPin, FiCreditCard, FiArrowLeft, FiClock, FiCheckCircle, FiTruck, FiStar } from 'react-icons/fi'
 import { orderAPI } from '../services/apiServices'
 import LoadingSpinner from '../components/LoadingSpinner'
+import ReviewModal from '../components/ReviewModal'
 
 const OrderDetails = () => {
   const { id } = useParams()
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [reviewProduct, setReviewProduct] = useState(null)
 
   useEffect(() => {
     fetchOrderDetails()
@@ -78,12 +80,24 @@ const OrderDetails = () => {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-light">{item.product?.name}</h3>
-                      <p className="text-sm text-muted mb-2">{item.product?.brand}</p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Qty: {item.quantity}</span>
-                        <span className="text-lg font-bold text-secondary">Rs. {(item.price * item.quantity).toFixed(2)}</span>
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-light">{item.product?.name}</h3>
+                        <p className="text-sm text-muted mb-2">{item.product?.brand}</p>
+                      </div>
+                      <div className="flex flex-wrap justify-between items-center gap-4 mt-2">
+                        <div className="flex items-center gap-4 text-sm">
+                          <span>Qty: {item.quantity}</span>
+                          <span className="text-lg font-bold text-secondary">Rs. {(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                        {order.orderStatus === 'delivered' && (
+                          <button
+                            onClick={() => setReviewProduct(item.product)}
+                            className="text-xs font-bold px-4 py-2 border border-secondary text-secondary hover:bg-secondary hover:text-primary rounded-lg transition flex items-center gap-2"
+                          >
+                            <FiStar /> Write a Review
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -169,6 +183,12 @@ const OrderDetails = () => {
           </div>
         </div>
       </div>
+      
+      <ReviewModal 
+        isOpen={!!reviewProduct} 
+        onClose={() => setReviewProduct(null)} 
+        product={reviewProduct} 
+      />
     </div>
   )
 }

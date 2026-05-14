@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiShoppingCart, FiHeart, FiStar } from 'react-icons/fi'
+import { FiShoppingCart, FiHeart, FiStar, FiArrowLeft } from 'react-icons/fi'
 import { productAPI, cartAPI, wishlistAPI, reviewAPI } from '../services/apiServices'
 import { toast } from 'react-toastify'
 import { useDispatch, useSelector } from 'react-redux'
@@ -10,6 +10,7 @@ import { setWishlist } from '../redux/wishlistSlice'
 
 const ProductDetails = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [product, setProduct] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
@@ -52,7 +53,8 @@ const ProductDetails = () => {
       dispatch(setCart(res.data.cart))
       toast.success('Added to cart!')
     } catch (error) {
-      toast.error('Failed to add to cart')
+      const message = error.response?.data?.message || "Failed to add to cart";
+       toast.error(message);
     }
   }
 
@@ -87,16 +89,29 @@ const ProductDetails = () => {
 
   return (
     <div className="min-h-screen bg-primary pt-24 pb-12">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Breadcrumb */}
-        <div className="mb-8 text-gray-400">
-          <Link to="/shop" className="hover:gold-text">Shop</Link> / {product.name}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Top Navigation Row: Back Button + Breadcrumb */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <motion.button
+            onClick={() => navigate(-1)}
+            whileHover={{ scale: 1.05, x: -3 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-2 px-4 py-2 rounded border border-secondary text-secondary hover:bg-secondary hover:text-primary transition font-semibold text-sm w-fit"
+          >
+            <FiArrowLeft className="text-base" />
+            Go Back
+          </motion.button>
+          <div className="text-gray-400 text-sm sm:text-base">
+            <Link to="/shop" className="hover:gold-text transition">Shop</Link>
+            <span className="mx-2">/</span>
+            <span className="text-gray-200 truncate">{product.name}</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {/* Image Section */}
           <div>
-            <motion.div className="mb-4 h-96 bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden">
+            <motion.div className="mb-4 h-72 sm:h-80 md:h-96 bg-gray-900 rounded-lg flex items-center justify-center overflow-hidden">
               <img
                 src={product.images[selectedImage]?.url || 'https://via.placeholder.com/400x400'}
                 alt={product.name}
@@ -105,14 +120,14 @@ const ProductDetails = () => {
             </motion.div>
 
             {/* Thumbnails */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {product.images.map((img, index) => (
                 <motion.img
                   key={index}
                   src={img.url}
                   alt={`${product.name} ${index}`}
                   onClick={() => setSelectedImage(index)}
-                  className={`w-20 h-20 rounded cursor-pointer border-2 ${selectedImage === index ? 'border-secondary' : 'border-gray-700'}`}
+                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded cursor-pointer border-2 object-cover ${selectedImage === index ? 'border-secondary' : 'border-gray-700'}`}
                   whileHover={{ scale: 1.05 }}
                 />
               ))}
@@ -125,7 +140,7 @@ const ProductDetails = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h1 className="text-4xl font-bold mb-2">{product.name}</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 leading-tight">{product.name}</h1>
               <p className="gold-text text-lg mb-4">{product.brand}</p>
 
               {/* Rating */}
@@ -140,13 +155,13 @@ const ProductDetails = () => {
 
               {/* Price */}
               <div className="mb-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-4xl font-bold gold-text">
+                <div className="flex flex-wrap items-center gap-3 mb-2">
+                  <span className="text-3xl sm:text-4xl font-bold gold-text">
                     Rs. {product.discountPrice || product.price}
                   </span>
                   {product.discountPrice && (
                     <>
-                      <span className="text-2xl line-through text-gray-500">
+                      <span className="text-xl sm:text-2xl line-through text-gray-500">
                         Rs. {product.price}
                       </span>
                       <span className="bg-secondary text-primary px-3 py-1 rounded text-sm font-bold">
@@ -158,29 +173,29 @@ const ProductDetails = () => {
               </div>
 
               {/* Description */}
-              <p className="text-gray-300 mb-6">{product.description}</p>
+              <p className="text-gray-300 mb-6 text-sm sm:text-base leading-relaxed">{product.description}</p>
 
               {/* Fragrance Notes */}
               {product.fragranceNotes && (
                 <div className="mb-6">
                   <h3 className="font-semibold mb-3">Fragrance Notes</h3>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 xs:grid-cols-3 grid-cols-3 gap-3">
                     {product.fragranceNotes.top && (
                       <div className="glass p-3 rounded">
                         <p className="text-secondary text-xs font-bold">TOP NOTES</p>
-                        <p className="text-sm">{product.fragranceNotes.top.join(', ')}</p>
+                        <p className="text-sm mt-1">{product.fragranceNotes.top.join(', ')}</p>
                       </div>
                     )}
                     {product.fragranceNotes.middle && (
                       <div className="glass p-3 rounded">
                         <p className="text-secondary text-xs font-bold">MIDDLE NOTES</p>
-                        <p className="text-sm">{product.fragranceNotes.middle.join(', ')}</p>
+                        <p className="text-sm mt-1">{product.fragranceNotes.middle.join(', ')}</p>
                       </div>
                     )}
                     {product.fragranceNotes.base && (
                       <div className="glass p-3 rounded">
                         <p className="text-secondary text-xs font-bold">BASE NOTES</p>
-                        <p className="text-sm">{product.fragranceNotes.base.join(', ')}</p>
+                        <p className="text-sm mt-1">{product.fragranceNotes.base.join(', ')}</p>
                       </div>
                     )}
                   </div>
@@ -195,19 +210,19 @@ const ProductDetails = () => {
               </div>
 
               {/* Quantity & Actions */}
-              <div className="flex flex-wrap sm:flex-nowrap gap-4 mb-6">
+              <div className="flex flex-wrap gap-4 mb-6">
                 <div className="flex items-center gap-3 border border-secondary rounded">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="px-3 py-2 hover:bg-secondary hover:text-primary"
+                    className="px-3 py-2 hover:bg-secondary hover:text-primary transition"
                   >
                     -
                   </button>
-                  <span className="px-4">{quantity}</span>
+                  <span className="px-4 min-w-[2rem] text-center">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
                     disabled={quantity >= product.stock}
-                    className="px-3 py-2 hover:bg-secondary hover:text-primary disabled:opacity-50"
+                    className="px-3 py-2 hover:bg-secondary hover:text-primary disabled:opacity-50 transition"
                   >
                     +
                   </button>
@@ -217,7 +232,7 @@ const ProductDetails = () => {
                   whileHover={{ scale: 1.05 }}
                   onClick={handleAddToCart}
                   disabled={product.stock === 0}
-                  className="flex-1 btn-premium rounded font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 min-w-[140px] btn-premium rounded font-bold flex items-center justify-center gap-2 disabled:opacity-50 py-3"
                 >
                   <FiShoppingCart /> Add to Cart
                 </motion.button>
@@ -225,7 +240,7 @@ const ProductDetails = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   onClick={handleAddToWishlist}
-                  className={`px-6 py-3 rounded font-bold border-2 transition ${
+                  className={`px-5 py-3 rounded font-bold border-2 transition ${
                     isWishlisted
                       ? 'bg-secondary text-primary border-secondary'
                       : 'border-secondary text-secondary hover:bg-secondary hover:text-primary'
@@ -240,8 +255,8 @@ const ProductDetails = () => {
 
         {/* Reviews Section */}
         <div className="border-t border-secondary pt-12">
-          <h2 className="text-2xl font-bold mb-6">Reviews</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <h2 className="text-xl sm:text-2xl font-bold mb-6">Reviews</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {reviews.length > 0 ? (
               reviews.map((review) => (
                 <div key={review._id} className="glass p-4 rounded">
@@ -259,6 +274,16 @@ const ProductDetails = () => {
               <p className="text-gray-400">No reviews yet. Be the first to review!</p>
             )}
           </div>
+          {reviews.length > 0 && (
+            <div className="mt-8 text-center">
+              <Link
+                to={`/product/${id}/reviews`}
+                className="inline-flex items-center gap-2 text-secondary hover:text-white transition font-semibold"
+              >
+                See All Reviews ({reviews.length})
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,10 +1,5 @@
 import axios from 'axios'
 
-/**
- * Determine the API base URL based on the current environment.
- * - In development (local): uses VITE_API_URL from .env or falls back to localhost:5000
- * - In production (Vercel): uses VITE_API_URL from Vercel env vars or falls back to Render URL
- */
 const getBaseURL = () => {
   // If explicitly set via environment variable, always use that
   if (import.meta.env.VITE_API_URL) {
