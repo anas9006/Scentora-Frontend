@@ -10,7 +10,6 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
   const profileRef = useRef(null)
   const { user, token } = useSelector((state) => state.auth)
   const { itemCount } = useSelector((state) => state.cart)
@@ -78,17 +77,7 @@ const Navbar = () => {
 
           {/* Right Side Actions: Profile, Wishlist, Cart */}
           <div className="flex items-center space-x-3 lg:space-x-4 xl:space-x-5 flex-shrink-0">
-            {/* Desktop Search */}
-            <div className="hidden xl:block relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-[#121212] border border-secondary/20 rounded px-3 py-2 text-sm w-40 focus:outline-none focus:border-secondary transition-all"
-              />
-              <FiSearch className="absolute right-3 top-3 text-secondary cursor-pointer" />
-            </div>
+    
 
             {/* Profile Link/Dropdown */}
             <div ref={profileRef} className="relative">

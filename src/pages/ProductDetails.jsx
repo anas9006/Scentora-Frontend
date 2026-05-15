@@ -7,6 +7,7 @@ import { toast } from 'react-toastify'
 import { useDispatch, useSelector } from 'react-redux'
 import { setCart } from '../redux/cartSlice'
 import { setWishlist } from '../redux/wishlistSlice'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 const ProductDetails = () => {
   const { id } = useParams()
@@ -69,7 +70,7 @@ const ProductDetails = () => {
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+    return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
 
   if (!product) {

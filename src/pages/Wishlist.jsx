@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiTrash2, FiShoppingCart } from "react-icons/fi";
+import { FiTrash2 } from "react-icons/fi";
 import { wishlistAPI, cartAPI } from "../services/apiServices";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { setWishlist as setReduxWishlist } from "../redux/wishlistSlice";
 import { setCart } from "../redux/cartSlice";
 import ProductCard from "../components/ProductCard";
@@ -48,18 +49,11 @@ const Wishlist = () => {
 
   const handleAddToCart = async (product) => {
     try {
-      const res = await cartAPI.addToCart({
-        productId: product._id,
-        quantity: 1,
-      });
-
+      const res = await cartAPI.addToCart({ productId: product._id, quantity: 1 });
       dispatch(setCart(res.data.cart));
       toast.success("Added to cart!");
     } catch (error) {
-      console.error("Error adding to cart:", error.response?.data);
-
       const message = error.response?.data?.message || "Failed to add to cart";
-
       toast.error(message);
     }
   };
@@ -67,22 +61,24 @@ const Wishlist = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Loading...
+        <LoadingSpinner />
       </div>
     );
   }
 
   if (!wishlist || wishlist.products.length === 0) {
     return (
-      <div className="min-h-screen bg-primary pt-24 pb-12">
-        <div className="max-w-4xl mx-auto px-4 text-center py-20">
-          <h1 className="text-4xl font-bold mb-4">Your Wishlist is Empty</h1>
-          <p className="text-gray-400 mb-8">
+      <div className="min-h-screen bg-primary pt-20 sm:pt-24 pb-12">
+        <div className="max-w-4xl mx-auto px-4 text-center py-16 sm:py-20">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
+            Your Wishlist is Empty
+          </h1>
+          <p className="text-gray-400 text-sm sm:text-base mb-6 sm:mb-8">
             Save your favorite fragrances to your wishlist
           </p>
           <button
             onClick={() => navigate("/shop")}
-            className="btn-premium px-8 py-3 rounded font-bold"
+            className="btn-premium px-6 sm:px-8 py-2.5 sm:py-3 rounded font-bold text-sm sm:text-base"
           >
             Continue Shopping
           </button>
@@ -92,34 +88,52 @@ const Wishlist = () => {
   }
 
   return (
-    <div className="min-h-screen bg-primary pt-24 pb-12">
-      <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-4xl font-bold mb-8">
-          My <span className="gold-text">Wishlist</span>
-        </h1>
+    <div className="min-h-screen bg-primary pt-20 sm:pt-24 pb-12">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+            My <span className="gold-text">Wishlist</span>
+          </h1>
+          <span className="text-xs sm:text-sm text-gray-400">
+            {wishlist.products.length}{" "}
+            {wishlist.products.length === 1 ? "item" : "items"}
+          </span>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 items-start">
           {wishlist.products.map((product) => (
             <motion.div
               key={product._id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="relative"
+              // ↓ This is the key fix: equal height + flex column so all cards stretch uniformly
+              className="relative flex flex-col h-full"
             >
-              <ProductCard
-                product={product}
-                onAddToCart={() => handleAddToCart(product)}
-                onAddToWishlist={() => handleRemoveItem(product._id)}
-              />
+              {/* Wrapper forces ProductCard to fill the column height */}
+              <div className="flex flex-col h-full [&>*]:flex [&>*]:flex-col [&>*]:h-full [&_img]:h-36 [&_img]:sm:h-44 [&_img]:md:h-52 [&_img]:object-cover [&_img]:w-full">
+                <ProductCard
+                  product={product}
+                  onAddToCart={() => handleAddToCart(product)}
+                  onAddToWishlist={() => handleRemoveItem(product._id)}
+                />
+              </div>
+
+              {/* Remove button */}
               <button
                 onClick={() => handleRemoveItem(product._id)}
-                className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded hover:bg-red-700 transition"
+                className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-red-600 text-white p-1.5 sm:p-2 rounded hover:bg-red-700 active:bg-red-800 transition z-10"
+                aria-label="Remove from wishlist"
               >
-                <FiTrash2 />
+                <FiTrash2 size={14} className="sm:hidden" />
+                <FiTrash2 size={16} className="hidden sm:block" />
               </button>
             </motion.div>
           ))}
         </div>
+
       </div>
     </div>
   );

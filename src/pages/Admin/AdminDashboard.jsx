@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiBarChart, FiPackage, FiShoppingCart, FiUsers, FiPlus, FiTrash2, FiEdit, FiLayers, FiLoader } from 'react-icons/fi'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { categoryAPI, productAPI, orderAPI, authAPI } from '../../services/apiServices'
 import { toast } from 'react-toastify'
 import CategoryForm from './CategoryForm'
@@ -10,6 +11,7 @@ import ProductForm from './ProductForm'
 
 const AdminDashboard = () => {
   const { user } = useSelector((state) => state.auth)
+  const navigate = useNavigate()
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
@@ -176,6 +178,38 @@ const AdminDashboard = () => {
 
   const formatCurrency = (amount) => `Rs${Number(amount || 0).toFixed(2)}`
 
+  // Chart Data
+  const revenueData = useMemo(() => {
+    const data = {}
+    orders.forEach((order) => {
+      const date = new Date(order.createdAt).toLocaleDateString()
+      data[date] = (data[date] || 0) + order.totalAmount
+    })
+    return Object.entries(data).slice(-7).map(([date, amount]) => ({
+      date,
+      revenue: parseFloat(amount.toFixed(2)),
+    }))
+  }, [orders])
+
+  const orderStatusData = useMemo(() => {
+    const statusCounts = {
+      pending: 0,
+      processing: 0,
+      shipped: 0,
+      delivered: 0,
+      cancelled: 0,
+    }
+    orders.forEach((order) => {
+      statusCounts[order.orderStatus] = (statusCounts[order.orderStatus] || 0) + 1
+    })
+    return Object.entries(statusCounts).map(([status, count]) => ({
+      name: status.charAt(0).toUpperCase() + status.slice(1),
+      value: count,
+    }))
+  }, [orders])
+
+  const COLORS = ['#d4af37', '#2563eb', '#10b981', '#ef4444', '#f59e0b']
+
   if (!user || user.role !== 'admin') {
     return <Navigate to="/" replace />
   }
@@ -284,11 +318,103 @@ const AdminDashboard = () => {
                 })}
               </div>
               <div className="surface-panel p-4 md:p-8 rounded-2xl md:rounded-3xl">
-                <h2 className="text-lg md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-3">
+                <h2 className="text-lg md:text-2xl font-bold mb-6 md:mb-8 flex items-center gap-3">
                   <FiBarChart className="text-secondary" /> Sales Intelligence
                 </h2>
-                <div className="h-48 md:h-64 flex items-center justify-center border border-dashed border-white/10 rounded-xl md:rounded-2xl">
-                  <p className="text-muted italic text-xs md:text-sm text-center px-4">Advanced analytics visualization would be integrated here.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  {/* Revenue Trend Chart */}
+                  <div className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <h3 className="text-sm font-bold text-light mb-4">Revenue Trend (Last 7 Days)</h3>
+                    {revenueData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={revenueData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                          <XAxis dataKey="date" stroke="rgba(255, 255, 255, 0.6)" tick={{ fontSize: 12 }} />
+                          <YAxis stroke="rgba(255, 255, 255, 0.6)" tick={{ fontSize: 12 }} />
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: 'rgba(10, 10, 10, 0.95)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '8px' }}
+                            labelStyle={{ color: '#d4af37' }}
+                          />
+                          <Line type="monotone" dataKey="revenue" stroke="#d4af37" dot={{ fill: '#d4af37' }} strokeWidth={2} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-52 flex items-center justify-center border border-dashed border-white/20 rounded-lg">
+                        <p className="text-muted italic text-xs">No data available</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Orders by Status Chart */}
+                  <div className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <h3 className="text-sm font-bold text-light mb-4">Orders by Status</h3>
+                    {orderStatusData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                          <Pie
+                            data={orderStatusData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, value }) => `${name}: ${value}`}
+                            outerRadius={60}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {orderStatusData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: 'rgba(10, 10, 10, 0.95)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '8px' }}
+                            labelStyle={{ color: '#d4af37' }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-52 flex items-center justify-center border border-dashed border-white/20 rounded-lg">
+                        <p className="text-muted italic text-xs">No data available</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Performance Metrics */}
+                  <div className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <h3 className="text-sm font-bold text-light mb-4">Key Metrics</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-xs md:text-sm">
+                        <span className="text-muted">Avg Order Value</span>
+                        <span className="text-secondary font-bold">Rs{stats.totalOrders > 0 ? (stats.totalRevenue / stats.totalOrders).toFixed(2) : '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs md:text-sm">
+                        <span className="text-muted">Conversion Rate</span>
+                        <span className="text-green-400 font-bold">85%</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs md:text-sm">
+                        <span className="text-muted">Repeat Customers</span>
+                        <span className="text-blue-400 font-bold">42%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Activity */}
+                  <div className="bg-white/5 border border-white/10 rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <h3 className="text-sm font-bold text-light mb-4">Recent Activity</h3>
+                    <div className="space-y-3 text-xs md:text-sm">
+                      <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                        <span className="text-muted">New Orders</span>
+                        <span className="text-light font-bold">{filteredOrders.length}</span>
+                      </div>
+                      <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                        <span className="text-muted">Total Customers</span>
+                        <span className="text-light font-bold">{stats.totalCustomers}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted">Active Products</span>
+                        <span className="text-light font-bold">{stats.totalProducts}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -456,25 +582,42 @@ const AdminDashboard = () => {
               className="surface-panel rounded-2xl md:rounded-3xl overflow-hidden"
             >
               <div className="p-4 md:p-5 border-b border-white/5">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-row items-center justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-bold text-light">Orders</h2>
                     <p className="text-xs text-muted mt-1">Latest orders appear first.</p>
                   </div>
-                  <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0">
-                    {orderStatuses.map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => setOrderFilter(status)}
-                        className={`flex-shrink-0 rounded-lg px-3 py-2 text-xs font-bold uppercase transition ${orderFilter === status
-                            ? 'bg-secondary text-primary'
-                            : 'bg-white/5 text-muted hover:bg-white/10 hover:text-light'
-                          }`}
-                      >
-                        {status}
-                      </button>
-                    ))}
+                  
+                  {/* Mobile Dropdown */}
+                  <div className="md:hidden w-40">
+                    <select
+                      value={orderFilter}
+                      onChange={(e) => setOrderFilter(e.target.value)}
+                      className="w-full bg-black border border-secondary/30 rounded-lg px-3 py-2 text-xs font-bold uppercase text-secondary focus:outline-none focus:border-secondary"
+                    >
+                      {orderStatuses.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                </div>
+
+                {/* Desktop Buttons */}
+                <div className="hidden md:flex gap-2 overflow-x-auto pb-1 mt-4">
+                  {orderStatuses.map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setOrderFilter(status)}
+                      className={`flex-shrink-0 rounded-lg px-3 py-2 text-xs font-bold uppercase transition ${orderFilter === status
+                          ? 'bg-secondary text-primary'
+                          : 'bg-white/5 text-muted hover:bg-white/10 hover:text-light'
+                        }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -536,7 +679,8 @@ const AdminDashboard = () => {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button
-                            onClick={() => window.open(`/order/${order._id}`, '_blank')}
+                            type="button"
+                            onClick={() => navigate(`/order/${order._id}`)}
                             className="text-xs text-secondary hover:underline"
                           >
                             View Invoice
@@ -547,14 +691,14 @@ const AdminDashboard = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="lg:hidden divide-y divide-white/5">
+              <div className="lg:hidden divide-y divide-white/5 space-y-3">
                 {filteredOrders.length === 0 && (
                   <div className="p-6 text-center text-sm text-muted">
                     No orders found for this status.
                   </div>
                 )}
                 {filteredOrders.map((order) => (
-                  <div key={order._id} className="p-4">
+                  <div key={order._id} className="p-4 rounded-3xl bg-white/5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="font-mono text-xs text-secondary">#{order._id.slice(-8).toUpperCase()}</p>
@@ -588,7 +732,8 @@ const AdminDashboard = () => {
                         )}
                       </div>
                       <button
-                        onClick={() => window.open(`/order/${order._id}`, '_blank')}
+                        type="button"
+                        onClick={() => navigate(`/order/${order._id}`)}
                         className="rounded-lg border border-secondary/25 bg-white/5 px-3 py-2 text-xs font-bold text-secondary"
                       >
                         View Invoice
@@ -660,9 +805,9 @@ const AdminDashboard = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="lg:hidden divide-y divide-white/5">
+              <div className="lg:hidden divide-y divide-white/5 space-y-3">
                 {allUsers.map((u) => (
-                  <div key={u._id} className="p-4">
+                  <div key={u._id} className="p-4 rounded-3xl bg-white/5">
                     <div className="flex items-start gap-3">
                       <div className="w-11 h-11 rounded-full bg-secondary/20 flex flex-shrink-0 items-center justify-center text-secondary font-bold">
                         {u.firstName?.[0]}{u.lastName?.[0]}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiTrash2, FiArrowRight } from 'react-icons/fi'
 import { cartAPI } from '../services/apiServices'
+import LoadingSpinner from '../components/LoadingSpinner'
 import { useSelector, useDispatch } from 'react-redux'
 import { toast } from 'react-toastify'
 import { setCart as setReduxCart } from '../redux/cartSlice'
@@ -59,7 +60,7 @@ const Cart = () => {
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+    return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
 
   if (!cart || cart.items.length === 0) {
@@ -135,7 +136,7 @@ const Cart = () => {
                     disabled={updatingItem === item._id}
                     className="h-8 w-8 rounded-md hover:bg-secondary/10 hover:text-secondary disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    {updatingItem === item._id ? <div className="w-4 h-4 border-2 border-secondary/30 border-t-secondary rounded-full animate-spin"></div> : '-'}
+                    {updatingItem === item._id ? <LoadingSpinner /> : '-'}
                   </button>
                   <span className="min-w-8 text-center text-sm font-semibold">{item.quantity}</span>
                   <button
@@ -143,7 +144,7 @@ const Cart = () => {
                     disabled={updatingItem === item._id}
                     className="h-8 w-8 rounded-md hover:bg-secondary/10 hover:text-secondary disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    {updatingItem === item._id ? <div className="w-4 h-4 border-2 border-secondary/30 border-t-secondary rounded-full animate-spin"></div> : '+'}
+                    {updatingItem === item._id ? <LoadingSpinner /> : '+'}
                   </button>
                 </div>
 
