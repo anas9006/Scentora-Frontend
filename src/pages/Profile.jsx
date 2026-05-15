@@ -1,268 +1,364 @@
-import React, { useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { motion, AnimatePresence } from 'framer-motion'
-import LoadingSpinner from '../components/LoadingSpinner'
+﻿import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import LoadingSpinner from "../components/LoadingSpinner";
 import {
-  FiUser, FiLock, FiPackage, FiEdit2, FiSave, FiX,
-  FiCheckCircle, FiEye, FiEyeOff, FiShield,
-} from 'react-icons/fi'
-import { toast } from 'react-toastify'
-import { authAPI, orderAPI } from '../services/apiServices'
-import { updateUser } from '../redux/authSlice'
+  FiUser,
+  FiLock,
+  FiMapPin,
+  FiEdit2,
+  FiSave,
+  FiX,
+  FiEye,
+  FiEyeOff,
+  FiShield,
+  FiPlus,
+  FiTrash2,
+  FiCheck,
+} from "react-icons/fi";
+import { toast } from "react-toastify";
+import { authAPI, addressAPI } from "../services/apiServices";
+import { updateUser } from "../redux/authSlice";
 
 const getStrength = (pw) => {
-  if (!pw) return 0
-  let s = 0
-  if (pw.length >= 8)          s++
-  if (/[A-Z]/.test(pw))        s++
-  if (/[0-9]/.test(pw))        s++
-  if (/[^A-Za-z0-9]/.test(pw)) s++
-  return s
-}
-const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong']
-const strengthColor = ['', '#ef4444', '#f97316', '#eab308', '#22c55e']
+  if (!pw) return 0;
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  return s;
+};
+const strengthLabel = ["", "Weak", "Fair", "Good", "Strong"];
+const strengthColor = ["", "#ef4444", "#f97316", "#eab308", "#22c55e"];
+
+/* shared input / select style */
+const fieldCls =
+  "w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-accent transition placeholder:text-white/20";
+const labelCls =
+  "block text-[10px] sm:text-xs text-muted uppercase tracking-widest mb-1";
 
 const PasswordField = ({ label, value, onChange, required }) => {
-  const [show, setShow] = useState(false)
+  const [show, setShow] = useState(false);
   return (
-    <div className="space-y-2">
-      <label className="text-xs sm:text-sm text-muted uppercase tracking-widest">{label}</label>
+    <div>
+      <label className={labelCls}>{label}</label>
       <div className="relative">
         <input
-          type={show ? 'text' : 'password'}
+          type={show ? "text" : "password"}
           required={required}
           value={value}
           onChange={onChange}
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:border-accent transition text-sm sm:text-base"
+          className={fieldCls + " pr-10"}
         />
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-accent transition"
           tabIndex={-1}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-accent transition"
         >
-          {show ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+          {show ? <FiEyeOff size={15} /> : <FiEye size={15} />}
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
 const Profile = () => {
-  const { user } = useSelector((state) => state.auth)
-  const dispatch  = useDispatch()
-  const [activeTab, setActiveTab] = useState('details')
-  const [loading,   setLoading]   = useState(false)
-  const [orders,    setOrders]    = useState([])
-  const [isEditing, setIsEditing] = useState(false)
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState("details");
+  const [loading, setLoading] = useState(false);
+  const [addresses, setAddresses] = useState([]);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [addressForm, setAddressForm] = useState({
+    label: "Home",
+    address: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "",
+  });
 
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName:  user?.lastName  || '',
-    email:     user?.email     || '',
-    phone:     user?.phone     || '',
-  })
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+  });
 
   const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword:     '',
-    confirmPassword: '',
-  })
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
-  const pwStrength = getStrength(passwordData.newPassword)
+  const pwStrength = getStrength(passwordData.newPassword);
 
   useEffect(() => {
-    if (activeTab === 'orders') fetchOrders()
-  }, [activeTab])
+    fetchAddresses();
+  }, []);
 
-  const fetchOrders = async () => {
+  const fetchAddresses = async () => {
+    setAddressLoading(true);
     try {
-      setLoading(true)
-      const res = await orderAPI.getOrders()
-      setOrders(res.data.orders)
-    } catch {
-      toast.error('Failed to fetch orders')
+      const res = await addressAPI.getAddresses();
+      setAddresses(res.data.addresses);
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Unable to load addresses");
     } finally {
-      setLoading(false)
+      setAddressLoading(false);
     }
-  }
+  };
+
+  const handleAddAddress = async (e) => {
+    e.preventDefault();
+    setAddressLoading(true);
+    try {
+      await addressAPI.createAddress(addressForm);
+      toast.success("Address added");
+      setAddressForm({
+        label: "Home",
+        address: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        country: "",
+      });
+      await fetchAddresses();
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Could not add address");
+    } finally {
+      setAddressLoading(false);
+    }
+  };
+
+  const handleRemoveAddress = async (id) => {
+    setAddressLoading(true);
+    try {
+      await addressAPI.deleteAddress(id);
+      await fetchAddresses();
+      toast.success("Address removed");
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Could not remove address");
+    } finally {
+      setAddressLoading(false);
+    }
+  };
+
+  const handleSetPrimary = async (id) => {
+    setAddressLoading(true);
+    try {
+      await addressAPI.setPrimaryAddress(id);
+      await fetchAddresses();
+      toast.success("Primary address updated");
+    } catch (e) {
+      toast.error(
+        e.response?.data?.message || "Could not update primary address",
+      );
+    } finally {
+      setAddressLoading(false);
+    }
+  };
 
   const handleProfileUpdate = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+    setLoading(true);
     try {
-      setLoading(true)
-      const res = await authAPI.updateProfile(profileData)
-      dispatch(updateUser(res.data.user))
-      toast.success('Profile updated successfully')
-      setIsEditing(false)
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Update failed')
+      const res = await authAPI.updateProfile(profileData);
+      dispatch(updateUser(res.data.user));
+      toast.success("Profile updated");
+      setIsEditing(false);
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Update failed");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handlePasswordUpdate = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword)
-      return toast.error('Passwords do not match')
+      return toast.error("Passwords do not match");
+    setLoading(true);
     try {
-      setLoading(true)
-      await authAPI.updatePassword(passwordData)
-      toast.success('Password updated successfully')
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Password update failed')
+      await authAPI.updatePassword(passwordData);
+      toast.success("Password updated");
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Password update failed");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const tabs = [
-    { id: 'details',  label: 'My Details', icon: <FiUser    size={18} /> },
-    { id: 'security', label: 'Security',   icon: <FiShield  size={18} /> },
-    { id: 'orders',   label: 'My Orders',  icon: <FiPackage size={18} /> },
-  ]
+    {
+      id: "details",
+      label: "My Details",
+      short: "Details",
+      icon: <FiUser size={16} />,
+    },
+    {
+      id: "security",
+      label: "Security",
+      short: "Security",
+      icon: <FiShield size={16} />,
+    },
+    {
+      id: "addresses",
+      label: "Addresses",
+      short: "Addresses",
+      icon: <FiMapPin size={16} />,
+    },
+  ];
 
   return (
-    <div className="min-h-screen pt-20 sm:pt-28 md:pt-32 pb-16 sm:pb-20 px-3 sm:px-6 lg:px-8 luxury-gradient">
+    <div className="min-h-screen pt-18 sm:pt-24 md:pt-28 pb-14 px-3 sm:px-6 lg:px-8 luxury-gradient">
       <div className="max-w-5xl mx-auto">
-
-        {/* Page Header */}
+        {/* Page header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-7 sm:mb-10 md:mb-12"
+          className="text-center mb-6 sm:mb-10"
         >
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold gold-text gold-glow mb-2 sm:mb-3">
+          <h1 className="text-2xl sm:text-4xl font-bold gold-text gold-glow mb-1 sm:mb-2">
             My Account
           </h1>
-          <p className="text-muted text-sm sm:text-base md:text-lg px-2">
-            Manage your personal information and track your fragrance journey.
+          <p className="text-muted text-xs sm:text-base">
+            Manage your profile, security and delivery addresses.
           </p>
         </motion.div>
 
-        {/* Mobile / Tablet Tab Bar */}
-        <div className="flex lg:hidden surface-panel rounded-2xl p-1.5 gap-1 mb-5 sm:mb-6">
+        {/* Mobile tab bar */}
+        <div className="flex lg:hidden surface-panel rounded-2xl p-1 gap-1 mb-4 sm:mb-6">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 px-1 sm:px-2 py-2 sm:py-2.5 rounded-xl font-medium transition-all duration-300 ${
+              className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-medium transition-all duration-200 ${
                 activeTab === tab.id
-                  ? 'bg-accent text-[#D4AF37]'
-                  : 'hover:bg-white/5 text-muted hover:text-light'
+                  ? "bg-accent text-[#D4AF37]"
+                  : "text-muted hover:bg-white/5 hover:text-light"
               }`}
             >
-              <span className="text-base sm:text-lg">{tab.icon}</span>
-              {/* Full label on sm+, abbreviated on xs */}
-              <span className="text-[10px] sm:text-sm leading-tight">
-                {tab.id === 'details'  ? <><span className="sm:hidden">Details</span><span className="hidden sm:inline">My Details</span></> : tab.label}
-              </span>
+              {tab.icon}
+              <span>{tab.short}</span>
             </button>
           ))}
         </div>
 
-        {/* Layout */}
-        <div className="flex flex-col lg:flex-row gap-5 sm:gap-6 lg:gap-8">
-
-          {/* Desktop Sidebar */}
-          <div className="hidden lg:block lg:w-1/4">
-            <div className="surface-panel rounded-2xl p-4 sticky top-32">
-              <div className="flex flex-col gap-2">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-left w-full ${
-                      activeTab === tab.id
-                        ? 'bg-accent text-[#D4AF37] font-bold'
-                        : 'hover:bg-white/5 text-muted hover:text-light'
-                    }`}
-                  >
-                    <span className="text-xl flex-shrink-0">{tab.icon}</span>
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </div>
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+          {/* Desktop sidebar */}
+          <div className="hidden lg:block w-52 flex-shrink-0">
+            <div className="surface-panel rounded-2xl p-3 sticky top-28 space-y-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm transition-all duration-200 text-left ${
+                    activeTab === tab.id
+                      ? "bg-accent text-[#D4AF37] font-bold"
+                      : "text-muted hover:bg-white/5 hover:text-light"
+                  }`}
+                >
+                  <span className="flex-shrink-0">{tab.icon}</span>
+                  <span>{tab.label}</span>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Main Content */}
+          {/* Main panel */}
           <div className="flex-1 min-w-0">
             <AnimatePresence mode="wait">
-
-              {/* Details Tab */}
-              {activeTab === 'details' && (
+              {/* ── Details ── */}
+              {activeTab === "details" && (
                 <motion.div
                   key="details"
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="surface-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8"
+                  exit={{ opacity: 0, x: -16 }}
+                  className="surface-panel rounded-2xl p-4 sm:p-6"
                 >
-                  <div className="flex flex-wrap justify-between items-center gap-3 mb-5 sm:mb-7">
-                    <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-light flex items-center gap-2">
-                      <FiUser className="text-accent" /> Personal Information
+                  <div className="flex justify-between items-center mb-4 sm:mb-6">
+                    <h2 className="text-base sm:text-lg font-semibold text-light flex items-center gap-2">
+                      <FiUser className="text-accent" size={16} /> Personal
+                      Information
                     </h2>
                     {!isEditing && (
                       <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-1.5 text-accent hover:text-accent-soft transition text-sm"
+                        className="flex items-center gap-1 text-accent hover:text-accent-soft text-xs sm:text-sm transition"
                       >
-                        <FiEdit2 size={14} /> Edit
+                        <FiEdit2 size={13} /> Edit
                       </button>
                     )}
                   </div>
 
-                  <form onSubmit={handleProfileUpdate} className="space-y-4 sm:space-y-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                  <form
+                    onSubmit={handleProfileUpdate}
+                    className="space-y-3 sm:space-y-4"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {[
-                        { label: 'First Name', key: 'firstName', type: 'text' },
-                        { label: 'Last Name',  key: 'lastName',  type: 'text' },
-                        { label: 'Email Address', key: 'email',  type: 'email' },
-                        { label: 'Phone Number',  key: 'phone',  type: 'tel' },
+                        { label: "First Name", key: "firstName", type: "text" },
+                        { label: "Last Name", key: "lastName", type: "text" },
+                        { label: "Email Address", key: "email", type: "email" },
+                        { label: "Phone Number", key: "phone", type: "tel" },
                       ].map(({ label, key, type }) => (
-                        <div key={key} className="space-y-1.5 sm:space-y-2">
-                          <label className="text-xs sm:text-sm text-muted uppercase tracking-widest">
-                            {label}
-                          </label>
+                        <div key={key}>
+                          <label className={labelCls}>{label}</label>
                           <input
                             type={type}
                             disabled={!isEditing}
                             value={profileData[key]}
-                            onChange={(e) => setProfileData({ ...profileData, [key]: e.target.value })}
-                            className={`w-full bg-white/5 border border-white/10 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-accent transition ${
-                              !isEditing ? 'opacity-60 cursor-not-allowed' : ''
-                            }`}
+                            onChange={(e) =>
+                              setProfileData({
+                                ...profileData,
+                                [key]: e.target.value,
+                              })
+                            }
+                            className={
+                              fieldCls +
+                              (!isEditing
+                                ? " opacity-50 cursor-not-allowed"
+                                : "")
+                            }
                           />
                         </div>
                       ))}
                     </div>
 
                     {isEditing && (
-                      <div className="flex flex-col xs:flex-row gap-2 sm:gap-3 pt-2">
+                      <div className="flex gap-2 pt-1">
                         <button
                           type="submit"
                           disabled={loading}
-                          className="btn-premium px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl flex items-center justify-center gap-2 text-sm sm:text-base"
+                          className="btn-premium px-4 py-2 rounded-xl flex items-center gap-1.5 text-xs sm:text-sm"
                         >
-                          <FiSave size={14} /> {loading ? 'Saving...' : 'Save Changes'}
+                          <FiSave size={13} /> {loading ? "Saving…" : "Save"}
                         </button>
                         <button
                           type="button"
                           onClick={() => {
-                            setIsEditing(false)
+                            setIsEditing(false);
                             setProfileData({
-                              firstName: user?.firstName || '',
-                              lastName:  user?.lastName  || '',
-                              email:     user?.email     || '',
-                              phone:     user?.phone     || '',
-                            })
+                              firstName: user?.firstName || "",
+                              lastName: user?.lastName || "",
+                              email: user?.email || "",
+                              phone: user?.phone || "",
+                            });
                           }}
-                          className="bg-white/5 hover:bg-white/10 text-light px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl flex items-center justify-center gap-2 transition text-sm sm:text-base"
+                          className="bg-white/5 hover:bg-white/10 text-light px-4 py-2 rounded-xl flex items-center gap-1.5 transition text-xs sm:text-sm"
                         >
-                          <FiX size={14} /> Cancel
+                          <FiX size={13} /> Cancel
                         </button>
                       </div>
                     )}
@@ -270,55 +366,73 @@ const Profile = () => {
                 </motion.div>
               )}
 
-              {/* Security Tab */}
-              {activeTab === 'security' && (
+              {/* ── Security ── */}
+              {activeTab === "security" && (
                 <motion.div
                   key="security"
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="surface-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8"
+                  exit={{ opacity: 0, x: -16 }}
+                  className="surface-panel rounded-2xl p-4 sm:p-6 grid justify-center"
                 >
-                  <div className="flex flex-col items-center text-center mb-5 sm:mb-7">
-                    <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-light flex items-center gap-2 mb-1.5 sm:mb-2">
-                      <FiLock className="text-accent" /> Password & Security
+                  <div className="mb-4 sm:mb-6">
+                    <h2 className="text-base sm:text-lg font-semibold text-light flex items-center gap-2 mb-1">
+                      <FiLock className="text-accent" size={16} /> Password &
+                      Security
                     </h2>
-                    <p className="text-muted text-xs sm:text-sm px-2">
-                      Use a strong password — at least 8 characters with numbers and symbols.
+                    <p className="text-muted text-xs">
+                      At least 8 characters with uppercase, numbers and symbols.
                     </p>
                   </div>
 
-                  <form onSubmit={handlePasswordUpdate} className="w-full max-w-md mx-auto space-y-4 sm:space-y-5">
+                  <form
+                    onSubmit={handlePasswordUpdate}
+                    className="max-w-sm space-y-3 sm:space-y-4"
+                  >
                     <PasswordField
                       label="Current Password"
                       required
                       value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      onChange={(e) =>
+                        setPasswordData({
+                          ...passwordData,
+                          currentPassword: e.target.value,
+                        })
+                      }
                     />
 
-                    <div className="space-y-1">
+                    <div>
                       <PasswordField
                         label="New Password"
                         required
                         value={passwordData.newPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                        onChange={(e) =>
+                          setPasswordData({
+                            ...passwordData,
+                            newPassword: e.target.value,
+                          })
+                        }
                       />
                       {passwordData.newPassword.length > 0 && (
-                        <div className="pt-1">
-                          <div className="flex gap-1">
+                        <div className="mt-1.5">
+                          <div className="flex gap-1 mb-1">
                             {[1, 2, 3, 4].map((i) => (
                               <div
                                 key={i}
                                 className="flex-1 h-1 rounded-full transition-all duration-300"
                                 style={{
-                                  background: i <= pwStrength
-                                    ? strengthColor[pwStrength]
-                                    : 'rgba(255,255,255,0.08)',
+                                  background:
+                                    i <= pwStrength
+                                      ? strengthColor[pwStrength]
+                                      : "rgba(255,255,255,0.08)",
                                 }}
                               />
                             ))}
                           </div>
-                          <p className="text-xs mt-1" style={{ color: strengthColor[pwStrength] }}>
+                          <p
+                            className="text-[10px]"
+                            style={{ color: strengthColor[pwStrength] }}
+                          >
                             {strengthLabel[pwStrength]}
                           </p>
                         </div>
@@ -326,132 +440,235 @@ const Profile = () => {
                     </div>
 
                     <PasswordField
-                      label="Confirm New Password"
+                      label="Confirm Password"
                       required
                       value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      onChange={(e) =>
+                        setPasswordData({
+                          ...passwordData,
+                          confirmPassword: e.target.value,
+                        })
+                      }
                     />
 
                     <button
                       type="submit"
                       disabled={loading}
-                      className="btn-premium w-full py-3 sm:py-4 rounded-xl flex items-center justify-center gap-2 mt-2 text-sm sm:text-base"
+                      className="btn-premium w-full py-2.5 rounded-xl text-sm"
                     >
-                      <FiCheckCircle size={16} /> {loading ? 'Updating...' : 'Update Password'}
+                      {loading ? "Updating…" : "Update Password"}
                     </button>
                   </form>
                 </motion.div>
               )}
 
-              {/* Orders Tab */}
-              {activeTab === 'orders' && (
+              {/* ── Addresses ── */}
+              {activeTab === "addresses" && (
                 <motion.div
-                  key="orders"
-                  initial={{ opacity: 0, x: 20 }}
+                  key="addresses"
+                  initial={{ opacity: 0, x: 16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-4 sm:space-y-5"
+                  exit={{ opacity: 0, x: -16 }}
+                  className="space-y-4"
                 >
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-light flex items-center gap-2 mb-3 sm:mb-4">
-                    <FiPackage className="text-accent" /> Order History
-                  </h2>
+                  {/* Saved addresses */}
+                  <div className="surface-panel rounded-2xl p-4 sm:p-6">
+                    <h2 className="text-base sm:text-lg font-semibold text-light flex items-center gap-2 mb-3 sm:mb-4">
+                      <FiMapPin className="text-accent" size={16} /> Saved
+                      Addresses
+                    </h2>
 
-                  {loading ? (
-                    <div className="flex justify-center py-12">
-                      <LoadingSpinner />
-                    </div>
-                  ) : orders.length > 0 ? (
-                    orders.map((order) => (
-                      <div key={order._id} className="surface-panel rounded-xl sm:rounded-2xl overflow-hidden">
-
-                        {/* Meta strip — 2-col on mobile, 4-col on sm+ */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-4 md:p-6 border-b border-white/5">
-                          <div>
-                            <p className="text-[10px] sm:text-xs text-muted uppercase tracking-widest mb-0.5 sm:mb-1">
-                              Order ID
-                            </p>
-                            <p className="text-xs sm:text-sm font-mono text-light break-all">
-                              #{order._id.slice(-8).toUpperCase()}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] sm:text-xs text-muted uppercase tracking-widest mb-0.5 sm:mb-1">
-                              Date
-                            </p>
-                            <p className="text-xs sm:text-sm text-light">
-                              {new Date(order.createdAt).toLocaleDateString('en-PK', {
-                                day: '2-digit', month: 'short', year: 'numeric',
-                              })}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] sm:text-xs text-muted uppercase tracking-widest mb-0.5 sm:mb-1">
-                              Status
-                            </p>
-                            <span className={`text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-bold uppercase ${
-                              order.orderStatus === 'delivered' ? 'bg-green-500/20 text-green-400' :
-                              order.orderStatus === 'pending'   ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-accent/20 text-accent'
-                            }`}>
-                              {order.orderStatus}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-[10px] sm:text-xs text-muted uppercase tracking-widest mb-0.5 sm:mb-1">
-                              Total
-                            </p>
-                            <p className="text-sm sm:text-base md:text-lg font-bold text-accent">
-                              Rs. {order.totalAmount.toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Items */}
-                        <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
-                          {order.items.map((item, idx) => (
-                            <div
-                              key={idx}
-                              className={`flex items-center gap-3 sm:gap-4 ${idx > 0 ? 'border-t border-white/5 pt-3 sm:pt-4' : ''}`}
-                            >
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
-                                <img
-                                  src={item.product?.images?.[0]?.url || 'https://via.placeholder.com/150'}
-                                  alt={item.product?.name}
-                                  loading="lazy"
-                                  className="w-full h-full object-cover"
-                                />
+                    {addressLoading ? (
+                      <div className="flex justify-center py-8">
+                        <LoadingSpinner />
+                      </div>
+                    ) : addresses.length > 0 ? (
+                      <div className="space-y-2 sm:space-y-3">
+                        {addresses.map((addr) => (
+                          <div
+                            key={addr._id}
+                            className={`rounded-xl p-3 sm:p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition ${
+                              addr.primary
+                                ? "border-accent/40 bg-accent/5"
+                                : "border-white/8 bg-white/3"
+                            }`}
+                          >
+                            {/* Address info */}
+                            <div className="flex items-start gap-2.5 min-w-0">
+                              <div
+                                className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                  addr.primary
+                                    ? "bg-accent text-[#0d0d0d]"
+                                    : "bg-white/10 text-muted"
+                                }`}
+                              >
+                                {addr.label[0]}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-light font-medium text-xs sm:text-sm md:text-base truncate">
-                                  {item.product?.name}
-                                </p>
-                                <p className="text-[10px] sm:text-xs md:text-sm text-muted mt-0.5">
-                                  Qty: {item.quantity} × Rs. {item.price}
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  <span className="text-xs font-bold text-light uppercase tracking-wide">
+                                    {addr.label}
+                                  </span>
+                                  {addr.primary && (
+                                    <span className="text-[9px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                                      Primary
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted leading-relaxed truncate max-w-xs sm:max-w-sm">
+                                  {addr.address}, {addr.city}, {addr.state}{" "}
+                                  {addr.postalCode}, {addr.country}
                                 </p>
                               </div>
                             </div>
-                          ))}
-                        </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {!addr.primary && (
+                                <button
+                                  onClick={() => handleSetPrimary(addr._id)}
+                                  title="Set as primary"
+                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-secondary/30 text-secondary hover:bg-secondary/10 transition text-[10px] sm:text-xs font-semibold"
+                                >
+                                  <FiCheck size={11} />
+                                  <span className="hidden sm:inline">
+                                    Primary
+                                  </span>
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleRemoveAddress(addr._id)}
+                                title="Remove address"
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition text-[10px] sm:text-xs font-semibold"
+                              >
+                                <FiTrash2 size={11} />
+                                <span className="hidden sm:inline">Remove</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))
-                  ) : (
-                    <div className="surface-panel rounded-2xl sm:rounded-3xl p-8 sm:p-10 md:p-12 text-center">
-                      <FiPackage size={40} className="text-muted mx-auto mb-3 sm:mb-4 opacity-20" />
-                      <p className="text-muted text-sm sm:text-base">You haven't placed any orders yet.</p>
-                      <button className="text-accent mt-3 sm:mt-4 hover:underline text-sm sm:text-base">
-                        Start Shopping
-                      </button>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="text-center py-8 rounded-xl border border-dashed border-white/10">
+                        <FiMapPin
+                          size={30}
+                          className="text-muted mx-auto mb-2 opacity-20"
+                        />
+                        <p className="text-muted text-xs sm:text-sm">
+                          No saved addresses yet.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Add address form */}
+                  <div className="surface-panel rounded-2xl p-4 sm:p-6">
+                    <h3 className="text-sm sm:text-base font-semibold text-light flex items-center gap-2 mb-3 sm:mb-4">
+                      <FiPlus className="text-accent" size={15} /> Add New
+                      Address
+                    </h3>
+
+                    <form
+                      onSubmit={handleAddAddress}
+                      className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    >
+                      {/* Label dropdown — dark background to fix white text issue */}
+                      <div>
+                        <label className={labelCls}>Label</label>
+                        <select
+                          value={addressForm.label}
+                          onChange={(e) =>
+                            setAddressForm((p) => ({
+                              ...p,
+                              label: e.target.value,
+                            }))
+                          }
+                          className={fieldCls}
+                          style={{ colorScheme: "dark" }}
+                        >
+                          <option
+                            value="Home"
+                            style={{ background: "#1a1a1a", color: "#f0e8d5" }}
+                          >
+                            Home
+                          </option>
+                          <option
+                            value="Work"
+                            style={{ background: "#1a1a1a", color: "#f0e8d5" }}
+                          >
+                            Work
+                          </option>
+                          <option
+                            value="Other"
+                            style={{ background: "#1a1a1a", color: "#f0e8d5" }}
+                          >
+                            Other
+                          </option>
+                        </select>
+                      </div>
+
+                      {[
+                        { label: "Street Address", key: "address" },
+                        { label: "City", key: "city" },
+                        { label: "State", key: "state" },
+                        { label: "Postal Code", key: "postalCode" },
+                        { label: "Country", key: "country" },
+                      ].map(({ label, key }) => (
+                        <div key={key}>
+                          <label className={labelCls}>{label}</label>
+                          <input
+                            type="text"
+                            value={addressForm[key]}
+                            onChange={(e) =>
+                              setAddressForm((p) => ({
+                                ...p,
+                                [key]: e.target.value,
+                              }))
+                            }
+                            required
+                            placeholder={label}
+                            className={fieldCls}
+                          />
+                        </div>
+                      ))}
+
+                      {/* Buttons — full row */}
+                      <div className="sm:col-span-2 flex gap-2 pt-1 justify-end">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setAddressForm({
+                              label: "Home",
+                              address: "",
+                              city: "",
+                              state: "",
+                              postalCode: "",
+                              country: "",
+                            })
+                          }
+                          className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-muted hover:bg-white/10 transition text-xs sm:text-sm"
+                        >
+                          Clear
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={addressLoading}
+                          className="btn-premium px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-1.5"
+                        >
+                          <FiPlus size={13} />
+                          {addressLoading ? "Adding…" : "Add Address"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </motion.div>
               )}
-
             </AnimatePresence>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Profile
+export default Profile;

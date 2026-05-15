@@ -88,6 +88,14 @@ export const orderAPI = {
   updateOrderStatus: (id, data) => api.put(`/orders/${id}/status`, data),
 }
 
+export const addressAPI = {
+  getAddresses: () => api.get('/addresses'),
+  createAddress: (data) => api.post('/addresses', data),
+  updateAddress: (id, data) => api.put(`/addresses/${id}`, data),
+  deleteAddress: (id) => api.delete(`/addresses/${id}`),
+  setPrimaryAddress: (id) => api.put(`/addresses/${id}/primary`),
+}
+
 export const reviewAPI = {
   createReview: (data) => api.post('/reviews', data),
   getProductReviews: (productId) => api.get(`/reviews/${productId}`),

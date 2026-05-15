@@ -1,70 +1,83 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { FiShoppingCart, FiHeart } from 'react-icons/fi'
-import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { wishlistAPI } from '../services/apiServices'
-import { useDispatch } from 'react-redux'
-import { setWishlist } from '../redux/wishlistSlice'
-import { toast } from 'react-toastify'
+import React from "react";
+import { motion } from "framer-motion";
+import { FiShoppingCart, FiHeart } from "react-icons/fi";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { wishlistAPI } from "../services/apiServices";
+import { useDispatch } from "react-redux";
+import { setWishlist } from "../redux/wishlistSlice";
+import { toast } from "react-toastify";
 
 const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
-  const [isAddingToCart, setIsAddingToCart] = React.useState(false)
-  const [isTogglingWishlist, setIsTogglingWishlist] = React.useState(false)
-  const wishlistItems = useSelector((state) => state.wishlist.items)
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const [isAddingToCart, setIsAddingToCart] = React.useState(false);
+  const [isTogglingWishlist, setIsTogglingWishlist] = React.useState(false);
+  const wishlistItems = useSelector((state) => state.wishlist.items);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const getProductId = (item) => item?._id || item?.product?._id || item?.product || item
+  const getProductId = (item) =>
+    item?._id || item?.product?._id || item?.product || item;
   const isWishlisted = wishlistItems.some(
-    (item) => String(getProductId(item)) === String(product._id)
-  )
+    (item) => String(getProductId(item)) === String(product._id),
+  );
 
   const discountPercentage = product.discountPrice
-    ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
-    : 0
+    ? Math.round(
+        ((product.price - product.discountPrice) / product.price) * 100,
+      )
+    : 0;
 
   const handleWishlistToggle = async (e) => {
-    e.stopPropagation()
-    if (isTogglingWishlist) return
-    setIsTogglingWishlist(true)
+    e.stopPropagation();
+    if (isTogglingWishlist) return;
+    setIsTogglingWishlist(true);
     try {
       if (isWishlisted) {
-        const res = await wishlistAPI.removeFromWishlist(product._id)
-        dispatch(setWishlist({ products: res.data.wishlist.products }))
-        toast.success('Removed from wishlist')
+        const res = await wishlistAPI.removeFromWishlist(product._id);
+        dispatch(setWishlist({ products: res.data.wishlist.products }));
+        toast.success("Removed from wishlist");
       } else {
-        const res = await wishlistAPI.addToWishlist({ productId: product._id })
-        dispatch(setWishlist({ products: res.data.wishlist.products }))
-        toast.success('Added to wishlist!')
+        const res = await wishlistAPI.addToWishlist({ productId: product._id });
+        dispatch(setWishlist({ products: res.data.wishlist.products }));
+        toast.success("Added to wishlist!");
       }
     } catch (error) {
-      toast.error('Failed to update wishlist')
+      toast.error("Failed to update wishlist");
     } finally {
-      setIsTogglingWishlist(false)
+      setIsTogglingWishlist(false);
     }
-  }
+  };
 
   const WishlistIcon = () => {
     if (isTogglingWishlist) {
       return (
         <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-      )
+      );
     }
     return (
       <>
-        <FiHeart size={13} className="sm:hidden" fill={isWishlisted ? 'currentColor' : 'none'} />
-        <FiHeart size={15} className="hidden sm:block" fill={isWishlisted ? 'currentColor' : 'none'} />
+        <FiHeart
+          size={13}
+          className="sm:hidden"
+          fill={isWishlisted ? "currentColor" : "none"}
+        />
+        <FiHeart
+          size={15}
+          className="hidden sm:block"
+          fill={isWishlisted ? "currentColor" : "none"}
+        />
       </>
-    )
-  }
+    );
+  };
 
   const WishlistIconLg = () => {
     if (isTogglingWishlist) {
-      return <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      return (
+        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      );
     }
-    return <FiHeart size={20} fill={isWishlisted ? 'currentColor' : 'none'} />
-  }
+    return <FiHeart size={20} fill={isWishlisted ? "currentColor" : "none"} />;
+  };
 
   return (
     <motion.div
@@ -75,7 +88,7 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
       {/* Image Container */}
       <div className="relative overflow-hidden bg-gray-800 h-36 sm:h-44 lg:h-52 flex-shrink-0">
         <img
-          src={product.images?.[0]?.url || '/no-image.png'}
+          src={product.images?.[0]?.url || "/no-image.png"}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-110 transition duration-300"
         />
@@ -93,10 +106,10 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
           <motion.button
             whileHover={{ scale: 1.1 }}
             onClick={async (e) => {
-              e.stopPropagation()
-              setIsAddingToCart(true)
-              await onAddToCart()
-              setIsAddingToCart(false)
+              e.stopPropagation();
+              setIsAddingToCart(true);
+              await onAddToCart();
+              setIsAddingToCart(false);
             }}
             disabled={isAddingToCart}
             className="bg-secondary text-primary p-3 rounded-full hover:bg-yellow-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -115,8 +128,8 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
             disabled={isTogglingWishlist}
             className={`p-3 rounded-full transition disabled:cursor-not-allowed ${
               isWishlisted
-                ? 'bg-red-600 text-white hover:bg-red-700'
-                : 'bg-secondary text-primary hover:bg-yellow-400'
+                ? "bg-red-600 text-white hover:bg-red-700"
+                : "bg-secondary text-primary hover:bg-yellow-400"
             }`}
           >
             <WishlistIconLg />
@@ -136,10 +149,12 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
 
         <div className="flex items-center mb-1.5 sm:mb-2">
           <div className="flex text-yellow-400 text-xs sm:text-sm">
-            {[...Array(5)].map((_, i) => <span key={i}>★</span>)}
+            {[...Array(5)].map((_, i) => (
+              <span key={i}>★</span>
+            ))}
           </div>
           <span className="text-gray-400 text-[10px] sm:text-xs ml-1 sm:ml-2">
-            ({product.rating || 0})
+            ({product.rating ? Number(product.rating).toFixed(1) : "0.0"})
           </span>
         </div>
 
@@ -161,10 +176,10 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
             {/* Cart */}
             <button
               onClick={async (e) => {
-                e.stopPropagation()
-                setIsAddingToCart(true)
-                await onAddToCart()
-                setIsAddingToCart(false)
+                e.stopPropagation();
+                setIsAddingToCart(true);
+                await onAddToCart();
+                setIsAddingToCart(false);
               }}
               disabled={isAddingToCart}
               className="bg-secondary text-primary p-1.5 sm:p-2 rounded-full hover:bg-yellow-400 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -185,8 +200,8 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
               disabled={isTogglingWishlist}
               className={`p-1.5 sm:p-2 rounded-full transition active:scale-95 disabled:cursor-not-allowed ${
                 isWishlisted
-                  ? 'bg-red-600 text-white'
-                  : 'bg-[#111111] border border-secondary/20 text-gray-300'
+                  ? "bg-red-600 text-white"
+                  : "bg-[#111111] border border-secondary/20 text-gray-300"
               }`}
             >
               <WishlistIcon />
@@ -195,7 +210,7 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist }) => {
         </div>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default ProductCard
+export default ProductCard;
