@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { orderAPI, cartAPI } from "../services/apiServices";
+import { orderAPI, cartAPI, addressAPI } from "../services/apiServices";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { clearCartSuccess } from "../redux/cartSlice";
@@ -27,12 +27,16 @@ const Checkout = () => {
     paymentMethod: "cash_on_delivery",
   });
 
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+
   React.useEffect(() => {
     if (!user) {
       navigate("/login");
       return;
     }
     fetchCart();
+    fetchAddresses();
   }, [user, navigate]);
 
   const fetchCart = async () => {
@@ -44,9 +48,57 @@ const Checkout = () => {
     }
   };
 
+  const fetchAddresses = async () => {
+    try {
+      const res = await addressAPI.getAddresses();
+      const items = res.data.addresses || [];
+      setAddresses(items);
+
+      // Prefill with primary address (or first) if available
+      const primary = items.find((a) => a.primary) || items[0];
+      if (primary) {
+        setSelectedAddressId(primary._id);
+        setFormData((prev) => ({
+          ...prev,
+          address: primary.address || prev.address,
+          city: primary.city || prev.city,
+          state: primary.state || prev.state,
+          zipCode: primary.postalCode || prev.zipCode,
+          country: primary.country || prev.country,
+        }));
+      }
+    } catch (error) {
+      // no-op: user may have no addresses yet
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectAddress = (address) => {
+    setSelectedAddressId(address._id);
+    setFormData((prev) => ({
+      ...prev,
+      address: address.address || prev.address,
+      city: address.city || prev.city,
+      state: address.state || prev.state,
+      zipCode: address.postalCode || prev.zipCode,
+      country: address.country || prev.country,
+    }));
+  };
+
+  const handleSetPrimaryFromCheckout = async (id) => {
+    try {
+      await addressAPI.setPrimaryAddress(id);
+      await fetchAddresses();
+      toast.success("Primary address updated");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || "Could not set primary address",
+      );
+    }
   };
 
   const subtotal = cart
@@ -165,6 +217,31 @@ const Checkout = () => {
                 <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 gold-text">
                   Shipping Information
                 </h2>
+
+                {/* Saved addresses selector */}
+                {addresses.length > 0 && (
+                  <div className="mb-4">
+                    <label className="text-sm text-muted block mb-2">
+                      Choose saved address
+                    </label>
+                    <select
+                      value={selectedAddressId || ""}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        const addr = addresses.find((x) => x._id === id);
+                        if (addr) handleSelectAddress(addr);
+                      }}
+                      className={`${inputClass} max-w-md mb-3`}
+                    >
+                      <option value="">Select an address</option>
+                      {addresses.map((a) => (
+                        <option key={a._id} value={a._id}>
+                          {a.label} — {a.address}, {a.city}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* First / Last — stacked on mobile, side-by-side on sm+ */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">

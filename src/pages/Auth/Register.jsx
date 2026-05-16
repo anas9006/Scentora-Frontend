@@ -6,6 +6,7 @@ import { authAPI } from '../../services/apiServices'
 import { useDispatch } from 'react-redux'
 import { loginSuccess } from '../../redux/authSlice'
 import { toast } from 'react-toastify'
+import { validateEmail, validatePassword, validateName } from '../../utils/helpers'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ const Register = () => {
     password: '',
     confirmPassword: '',
   })
+  const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -25,13 +27,62 @@ const Register = () => {
       ...prev,
       [name]: value,
     }))
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }))
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+
+    // Validate first name
+    const firstNameValidation = validateName(formData.firstName)
+    if (!firstNameValidation.valid) {
+      newErrors.firstName = firstNameValidation.error
+    }
+
+    // Validate last name
+    const lastNameValidation = validateName(formData.lastName)
+    if (!lastNameValidation.valid) {
+      newErrors.lastName = lastNameValidation.error
+    }
+
+    // Validate email
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required'
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address'
+    }
+
+    // Validate password
+    if (!formData.password.trim()) {
+      newErrors.password = 'Password is required'
+    } else {
+      const passwordValidation = validatePassword(formData.password)
+      if (!passwordValidation.valid) {
+        newErrors.password = passwordValidation.error
+      }
+    }
+
+    // Validate confirm password
+    if (!formData.confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Please confirm your password'
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match')
+    if (!validateForm()) {
       return
     }
 
@@ -61,70 +112,100 @@ const Register = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="relative">
-              <FiUser className="absolute left-3 top-3 text-secondary" />
-              <input
-                type="text"
-                name="firstName"
-                placeholder="First Name"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-                className="w-full pl-10 pr-4 py-3 bg-primary border border-secondary rounded focus:outline-none focus:border-yellow-400"
-              />
+            <div>
+              <div className="relative">
+                <FiUser className="absolute left-3 top-3 text-secondary" />
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  required
+                  className={`w-full pl-10 pr-4 py-3 bg-primary border rounded focus:outline-none focus:border-yellow-400 ${
+                    errors.firstName ? 'border-red-500' : 'border-secondary'
+                  }`}
+                />
+              </div>
+              {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
             </div>
 
-            <div className="relative">
-              <FiUser className="absolute left-3 top-3 text-secondary" />
-              <input
-                type="text"
-                name="lastName"
-                placeholder="Last Name"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-                className="w-full pl-10 pr-4 py-3 bg-primary border border-secondary rounded focus:outline-none focus:border-yellow-400"
-              />
+            <div>
+              <div className="relative">
+                <FiUser className="absolute left-3 top-3 text-secondary" />
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  required
+                  className={`w-full pl-10 pr-4 py-3 bg-primary border rounded focus:outline-none focus:border-yellow-400 ${
+                    errors.lastName ? 'border-red-500' : 'border-secondary'
+                  }`}
+                />
+              </div>
+              {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
             </div>
           </div>
 
-          <div className="relative">
-            <FiMail className="absolute left-3 top-3 text-secondary" />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-primary border border-secondary rounded focus:outline-none focus:border-yellow-400"
-            />
+          <div>
+            <div className="relative">
+              <FiMail className="absolute left-3 top-3 text-secondary" />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className={`w-full pl-10 pr-4 py-3 bg-primary border rounded focus:outline-none focus:border-yellow-400 ${
+                  errors.email ? 'border-red-500' : 'border-secondary'
+                }`}
+              />
+            </div>
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
 
-          <div className="relative">
-            <FiLock className="absolute left-3 top-3 text-secondary" />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-primary border border-secondary rounded focus:outline-none focus:border-yellow-400"
-            />
+          <div>
+            <div className="relative">
+              <FiLock className="absolute left-3 top-3 text-secondary" />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className={`w-full pl-10 pr-4 py-3 bg-primary border rounded focus:outline-none focus:border-yellow-400 ${
+                  errors.password ? 'border-red-500' : 'border-secondary'
+                }`}
+              />
+            </div>
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            <p className="text-gray-500 text-xs mt-1">
+              Password must be 8+ characters with uppercase, lowercase, number & special character
+            </p>
           </div>
 
-          <div className="relative">
-            <FiLock className="absolute left-3 top-3 text-secondary" />
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-primary border border-secondary rounded focus:outline-none focus:border-yellow-400"
-            />
+          <div>
+            <div className="relative">
+              <FiLock className="absolute left-3 top-3 text-secondary" />
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                className={`w-full pl-10 pr-4 py-3 bg-primary border rounded focus:outline-none focus:border-yellow-400 ${
+                  errors.confirmPassword ? 'border-red-500' : 'border-secondary'
+                }`}
+              />
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+            )}
           </div>
 
           <motion.button

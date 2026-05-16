@@ -6,12 +6,14 @@ import { authAPI } from '../../services/apiServices'
 import { useDispatch } from 'react-redux'
 import { loginSuccess } from '../../redux/authSlice'
 import { toast } from 'react-toastify'
+import { validateEmail, validatePassword } from '../../utils/helpers'
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
+  const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -22,10 +24,39 @@ const Login = () => {
       ...prev,
       [name]: value,
     }))
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }))
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required'
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address'
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = 'Password is required'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -51,30 +82,40 @@ const Login = () => {
         <p className="text-gray-400 mb-8">Log in to your Scentora account</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <FiMail className="absolute left-3 top-3 text-secondary" />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-primary border border-secondary rounded focus:outline-none focus:border-yellow-400"
-            />
+          <div>
+            <div className="relative">
+              <FiMail className="absolute left-3 top-3 text-secondary" />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className={`w-full pl-10 pr-4 py-3 bg-primary border rounded focus:outline-none focus:border-yellow-400 ${
+                  errors.email ? 'border-red-500' : 'border-secondary'
+                }`}
+              />
+            </div>
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
 
-          <div className="relative">
-            <FiLock className="absolute left-3 top-3 text-secondary" />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-primary border border-secondary rounded focus:outline-none focus:border-yellow-400"
-            />
+          <div>
+            <div className="relative">
+              <FiLock className="absolute left-3 top-3 text-secondary" />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className={`w-full pl-10 pr-4 py-3 bg-primary border rounded focus:outline-none focus:border-yellow-400 ${
+                  errors.password ? 'border-red-500' : 'border-secondary'
+                }`}
+              />
+            </div>
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
 
           <Link to="/forgot-password" className="text-secondary hover:text-yellow-400 text-sm">

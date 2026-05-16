@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -72,6 +73,13 @@ const Profile = () => {
   const [addresses, setAddresses] = useState([]);
   const [addressLoading, setAddressLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [addressDropdownOpen, setAddressDropdownOpen] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  
+  const dropdownRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const [addressForm, setAddressForm] = useState({
     label: "Home",
@@ -101,11 +109,45 @@ const Profile = () => {
     fetchAddresses();
   }, []);
 
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
+          buttonRef.current && !buttonRef.current.contains(event.target)) {
+        setAddressDropdownOpen(false);
+      }
+    };
+
+    if (addressDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [addressDropdownOpen]);
+
+  // Update dropdown position when opened
+  useEffect(() => {
+    if (addressDropdownOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  }, [addressDropdownOpen]);
+
   const fetchAddresses = async () => {
     setAddressLoading(true);
     try {
       const res = await addressAPI.getAddresses();
-      setAddresses(res.data.addresses);
+      const data = res.data.addresses || [];
+      setAddresses(data);
+      const primary = data.find((a) => a.primary);
+      if (primary) {
+        setSelectedAddressId(primary._id);
+      }
     } catch (e) {
       toast.error(e.response?.data?.message || "Unable to load addresses");
     } finally {
@@ -113,12 +155,18 @@ const Profile = () => {
     }
   };
 
-  const handleAddAddress = async (e) => {
+  const handleAddressSubmit = async (e) => {
     e.preventDefault();
     setAddressLoading(true);
     try {
-      await addressAPI.createAddress(addressForm);
-      toast.success("Address added");
+      if (editingAddressId) {
+        await addressAPI.updateAddress(editingAddressId, addressForm);
+        toast.success("Address updated");
+      } else {
+        await addressAPI.createAddress(addressForm);
+        toast.success("Address added");
+      }
+      setEditingAddressId(null);
       setAddressForm({
         label: "Home",
         address: "",
@@ -129,7 +177,7 @@ const Profile = () => {
       });
       await fetchAddresses();
     } catch (e) {
-      toast.error(e.response?.data?.message || "Could not add address");
+      toast.error(e.response?.data?.message || "Could not save address");
     } finally {
       setAddressLoading(false);
     }
@@ -141,6 +189,10 @@ const Profile = () => {
       await addressAPI.deleteAddress(id);
       await fetchAddresses();
       toast.success("Address removed");
+      if (selectedAddressId === id) {
+        const fallback = addresses.find((a) => a._id !== id && a.primary) || addresses.find((a) => a._id !== id);
+        setSelectedAddressId(fallback?._id || null);
+      }
     } catch (e) {
       toast.error(e.response?.data?.message || "Could not remove address");
     } finally {
@@ -153,14 +205,39 @@ const Profile = () => {
     try {
       await addressAPI.setPrimaryAddress(id);
       await fetchAddresses();
+      setSelectedAddressId(id);
       toast.success("Primary address updated");
     } catch (e) {
-      toast.error(
-        e.response?.data?.message || "Could not update primary address",
-      );
+      toast.error(e.response?.data?.message || "Could not update primary address");
     } finally {
       setAddressLoading(false);
     }
+  };
+
+  const handleEditAddress = (address) => {
+    setEditingAddressId(address._id);
+    setAddressForm({
+      label: address.label,
+      address: address.address,
+      city: address.city,
+      state: address.state,
+      postalCode: address.postalCode,
+      country: address.country,
+    });
+    setActiveTab("addresses");
+    setAddressDropdownOpen(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingAddressId(null);
+    setAddressForm({
+      label: "Home",
+      address: "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "",
+    });
   };
 
   const handleProfileUpdate = async (e) => {
@@ -220,7 +297,7 @@ const Profile = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-18 sm:pt-24 md:pt-28 pb-14 px-3 sm:px-6 lg:px-8 luxury-gradient">
+    <div className="min-h-screen pt-20 sm:pt-24 md:pt-28 pb-10 sm:pb-12 lg:pb-14 px-3 sm:px-6 lg:px-8 luxury-gradient">
       <div className="max-w-5xl mx-auto">
         {/* Page header */}
         <motion.div
@@ -483,71 +560,85 @@ const Profile = () => {
                         <LoadingSpinner />
                       </div>
                     ) : addresses.length > 0 ? (
-                      <div className="space-y-2 sm:space-y-3">
-                        {addresses.map((addr) => (
-                          <div
-                            key={addr._id}
-                            className={`rounded-xl p-3 sm:p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition ${
-                              addr.primary
-                                ? "border-accent/40 bg-accent/5"
-                                : "border-white/8 bg-white/3"
-                            }`}
+                        <div className="mb-4 relative max-w-2xl">
+                          <button
+                            ref={buttonRef}
+                            type="button"
+                            onClick={() => setAddressDropdownOpen((prev) => !prev)}
+                            className="w-full text-left flex items-center justify-between gap-3 px-4 py-3 border border-white/10 rounded-xl bg-[#0f0f0f] hover:border-white/20 transition"
                           >
-                            {/* Address info */}
-                            <div className="flex items-start gap-2.5 min-w-0">
-                              <div
-                                className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                                  addr.primary
-                                    ? "bg-accent text-[#0d0d0d]"
-                                    : "bg-white/10 text-muted"
-                                }`}
-                              >
-                                {addr.label[0]}
-                              </div>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5 mb-0.5">
-                                  <span className="text-xs font-bold text-light uppercase tracking-wide">
-                                    {addr.label}
-                                  </span>
-                                  {addr.primary && (
-                                    <span className="text-[9px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                                      Primary
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-xs text-muted leading-relaxed truncate max-w-xs sm:max-w-sm">
-                                  {addr.address}, {addr.city}, {addr.state}{" "}
-                                  {addr.postalCode}, {addr.country}
-                                </p>
-                              </div>
-                            </div>
+                            <span className="truncate text-sm">
+                              {addresses.find((a) => a._id === selectedAddressId)?.label || "Select address"} — {addresses.find((a) => a._id === selectedAddressId)?.address || "No address selected"}
+                            </span>
+                            <span className="text-xs text-muted uppercase tracking-[0.2em]">
+                              Primary
+                            </span>
+                          </button>
 
-                            {/* Actions */}
-                            <div className="flex items-center gap-1.5 flex-shrink-0">
-                              {!addr.primary && (
-                                <button
-                                  onClick={() => handleSetPrimary(addr._id)}
-                                  title="Set as primary"
-                                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-secondary/30 text-secondary hover:bg-secondary/10 transition text-[10px] sm:text-xs font-semibold"
+                          {addressDropdownOpen && ReactDOM.createPortal(
+                            <div 
+                              ref={dropdownRef}
+                              className="fixed rounded-2xl border border-white/10 bg-[#0f0f0f] shadow-2xl overflow-hidden"
+                              style={{ 
+                                top: `${dropdownPosition.top}px`,
+                                left: `${dropdownPosition.left}px`,
+                                width: `${dropdownPosition.width}px`,
+                                zIndex: 99999
+                              }}
+                            >
+                              {addresses.map((addr) => (
+                                <div
+                                  key={addr._id}
+                                  className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/5 transition"
                                 >
-                                  <FiCheck size={11} />
-                                  <span className="hidden sm:inline">
-                                    Primary
-                                  </span>
-                                </button>
-                              )}
-                              <button
-                                onClick={() => handleRemoveAddress(addr._id)}
-                                title="Remove address"
-                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition text-[10px] sm:text-xs font-semibold"
-                              >
-                                <FiTrash2 size={11} />
-                                <span className="hidden sm:inline">Remove</span>
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleSetPrimary(addr._id);
+                                      setAddressDropdownOpen(false);
+                                    }}
+                                    className="flex-1 min-w-0 text-left"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 ${addr.primary ? "bg-accent text-[#0d0d0d]" : "bg-white/10 text-muted"}`}>
+                                        {addr.label[0]}
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <div className="text-sm font-semibold text-light truncate">
+                                          {addr.label} {addr.primary && <span className="ml-2 text-[10px] uppercase tracking-[0.2em] bg-accent/20 text-accent px-2 py-0.5 rounded-full">Primary</span>}
+                                        </div>
+                                        <p className="text-xs text-muted truncate">
+                                          {addr.address}, {addr.city}, {addr.state} {addr.postalCode}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </button>
+
+                                  <div className="flex items-center gap-2 flex-shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEditAddress(addr)}
+                                      className="p-2 rounded-lg hover:bg-white/5 transition"
+                                      title="Edit address"
+                                    >
+                                      <FiEdit2 size={16} className="text-muted hover:text-light" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveAddress(addr._id)}
+                                      className="p-2 rounded-lg hover:bg-white/5 transition"
+                                      title="Delete address"
+                                    >
+                                      <FiTrash2 size={16} className="text-muted hover:text-red-400" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>,
+                            document.body
+                          )}
+                        </div>
+
                     ) : (
                       <div className="text-center py-8 rounded-xl border border-dashed border-white/10">
                         <FiMapPin
@@ -564,12 +655,12 @@ const Profile = () => {
                   {/* Add address form */}
                   <div className="surface-panel rounded-2xl p-4 sm:p-6">
                     <h3 className="text-sm sm:text-base font-semibold text-light flex items-center gap-2 mb-3 sm:mb-4">
-                      <FiPlus className="text-accent" size={15} /> Add New
-                      Address
+                      <FiPlus className="text-accent" size={15} />
+                      {editingAddressId ? "Edit Address" : "Add New Address"}
                     </h3>
 
                     <form
-                      onSubmit={handleAddAddress}
+                      onSubmit={handleAddressSubmit}
                       className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                     >
                       {/* Label dropdown — dark background to fix white text issue */}
@@ -656,8 +747,23 @@ const Profile = () => {
                           className="btn-premium px-4 py-2 rounded-xl text-xs sm:text-sm flex items-center gap-1.5"
                         >
                           <FiPlus size={13} />
-                          {addressLoading ? "Adding…" : "Add Address"}
+                          {addressLoading
+                            ? editingAddressId
+                              ? "Saving…"
+                              : "Adding…"
+                            : editingAddressId
+                            ? "Save Address"
+                            : "Add Address"}
                         </button>
+                        {editingAddressId && (
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-muted hover:bg-white/10 transition text-xs sm:text-sm"
+                          >
+                            Cancel Edit
+                          </button>
+                        )}
                       </div>
                     </form>
                   </div>
