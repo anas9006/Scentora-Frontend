@@ -65,7 +65,13 @@ const Login = () => {
       toast.success('Logged in successfully!')
       navigate('/')
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed')
+      const errorMessage = error.response?.data?.message || 'Login failed'
+      toast.error(errorMessage)
+      
+      if (errorMessage.toLowerCase().includes('verify')) {
+        localStorage.setItem('pendingVerificationEmail', formData.email)
+        navigate('/verify-email', { state: { email: formData.email } })
+      }
     } finally {
       setLoading(false)
     }

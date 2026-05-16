@@ -90,9 +90,9 @@ const Register = () => {
 
     try {
       const response = await authAPI.register(formData)
-      dispatch(loginSuccess(response.data))
-      toast.success('Account created successfully!')
-      navigate('/')
+      toast.success(response.data.message)
+      localStorage.setItem('pendingVerificationEmail', formData.email)
+      navigate('/verify-email', { state: { email: formData.email } })
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed')
     } finally {
