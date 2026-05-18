@@ -13,6 +13,7 @@ import ProductCard from "../components/ProductCard";
 const Wishlist = () => {
   const [wishlist, setWishlist] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [removingProductId, setRemovingProductId] = useState(null);
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -38,12 +39,15 @@ const Wishlist = () => {
   };
 
   const handleRemoveItem = async (productId) => {
+    setRemovingProductId(productId);
     try {
       await wishlistAPI.removeFromWishlist(productId);
       fetchWishlist();
       toast.success("Item removed from wishlist");
     } catch (error) {
       toast.error("Error removing item");
+    } finally {
+      setRemovingProductId(null);
     }
   };
 
@@ -126,11 +130,18 @@ const Wishlist = () => {
               {/* Remove button */}
               <button
                 onClick={() => handleRemoveItem(product._id)}
-                className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-red-600 text-white p-1.5 sm:p-2 rounded hover:bg-red-700 active:bg-red-800 transition z-10"
+                disabled={removingProductId !== null}
+                className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-red-600 text-white p-1.5 sm:p-2 rounded hover:bg-red-700 active:bg-red-800 transition z-10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[28px] min-h-[28px] sm:min-w-[32px] sm:min-h-[32px]"
                 aria-label="Remove from wishlist"
               >
-                <FiTrash2 size={14} className="sm:hidden" />
-                <FiTrash2 size={16} className="hidden sm:block" />
+                {removingProductId === product._id ? (
+                  <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <FiTrash2 size={14} className="sm:hidden" />
+                    <FiTrash2 size={16} className="hidden sm:block" />
+                  </>
+                )}
               </button>
             </motion.div>
           ))}
