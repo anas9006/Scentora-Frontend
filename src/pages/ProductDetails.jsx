@@ -164,7 +164,15 @@ const ProductDetails = () => {
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1.5 sm:mb-2 leading-tight">
                 {product.name}
               </h1>
-              <p className="gold-text text-base sm:text-lg mb-3 sm:mb-4">{product.brand}</p>
+              
+              <div className="flex flex-wrap items-center gap-3 mb-3 sm:mb-4">
+                <p className="gold-text text-base sm:text-lg">{product.brand}</p>
+                {product.gender && (
+                  <span className="bg-white/5 border border-secondary/20 text-secondary px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+                    {product.gender}
+                  </span>
+                )}
+              </div>
 
               {/* Rating */}
               <div className="flex items-center gap-2 mb-4 sm:mb-6">

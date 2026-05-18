@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductCard from "../components/ProductCard";
 import {
@@ -14,7 +15,31 @@ import { setCart } from "../redux/cartSlice";
 import { setWishlist } from "../redux/wishlistSlice";
 import LoadingSpinner from "../components/LoadingSpinner";
 
+const inputStyle = {
+  width: "100%",
+  padding: "10px 14px",
+  background: "#111",
+  border: "1px solid rgba(212,175,55,0.2)",
+  borderRadius: "10px",
+  color: "#f0e8d5",
+  fontSize: "13px",
+  outline: "none",
+  transition: "border-color 0.2s",
+};
+
+const labelStyle = {
+  display: "block",
+  fontSize: "10px",
+  letterSpacing: "0.2em",
+  textTransform: "uppercase",
+  color: "#c9a84c",
+  marginBottom: "8px",
+};
+
 const Shop = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category") || "";
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -22,13 +47,37 @@ const Shop = () => {
   const dispatch = useDispatch();
 
   const [filters, setFilters] = useState({
-    category: "",
+    category: categoryParam,
     minPrice: 0,
     maxPrice: 50000,
     search: "",
     sort: "newest",
     page: 1,
   });
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Sync category param from URL to state
+  useEffect(() => {
+    const category = searchParams.get("category") || "";
+    setFilters((prev) => ({ ...prev, category, page: 1 }));
+  }, [searchParams]);
+
+  // Sync raw input when filters.search is changed externally (e.g., cleared)
+  useEffect(() => {
+    setSearchQuery(filters.search);
+  }, [filters.search]);
+
+  // Debounce search query updates
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery !== filters.search) {
+        setFilters((prev) => ({ ...prev, search: searchQuery, page: 1 }));
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, filters.search]);
 
   useEffect(() => { fetchCategories(); }, []);
   useEffect(() => { fetchProducts(); }, [filters]);
@@ -64,6 +113,13 @@ const Shop = () => {
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
+    if (key === "category") {
+      if (value) {
+        setSearchParams({ category: value });
+      } else {
+        setSearchParams({});
+      }
+    }
   };
 
   const handleAddToCart = async (product) => {
@@ -88,6 +144,7 @@ const Shop = () => {
 
   const clearFilters = () => {
     setFilters({ category: "", minPrice: 0, maxPrice: 50000, search: "", sort: "newest", page: 1 });
+    setSearchParams({});
   };
 
   const activeFilterCount = [
@@ -97,176 +154,7 @@ const Shop = () => {
     filters.maxPrice < 50000,
   ].filter(Boolean).length;
 
-  const inputStyle = {
-    width: "100%",
-    padding: "10px 14px",
-    background: "#111",
-    border: "1px solid rgba(212,175,55,0.2)",
-    borderRadius: "10px",
-    color: "#f0e8d5",
-    fontSize: "13px",
-    outline: "none",
-    transition: "border-color 0.2s",
-  };
 
-  const labelStyle = {
-    display: "block",
-    fontSize: "10px",
-    letterSpacing: "0.2em",
-    textTransform: "uppercase",
-    color: "#c9a84c",
-    marginBottom: "8px",
-  };
-
-  const FilterSidebar = ({ inDrawer = false }) => (
-    <div
-      style={{
-        background: inDrawer ? "transparent" : "#0f0f0f",
-        border: inDrawer ? "none" : "1px solid rgba(212,175,55,0.12)",
-        borderRadius: inDrawer ? "0" : "20px",
-        padding: inDrawer ? "0" : "24px",
-        height: "fit-content",
-        position: inDrawer ? "static" : "sticky",
-        top: "100px",
-      }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 style={{ color: "#f0e8d5", fontWeight: 700, fontSize: "16px" }}>
-            Filters
-          </h3>
-          {activeFilterCount > 0 && (
-            <span
-              style={{ fontSize: "11px", color: "#c9a84c", cursor: "pointer", textDecoration: "underline" }}
-              onClick={clearFilters}
-            >
-              Clear all ({activeFilterCount})
-            </span>
-          )}
-        </div>
-        {inDrawer && (
-          <button
-            onClick={() => setShowFilters(false)}
-            style={{
-              background: "rgba(212,175,55,0.1)",
-              border: "none",
-              borderRadius: "8px",
-              padding: "6px",
-              color: "#c9a84c",
-              cursor: "pointer",
-            }}
-          >
-            <FiX size={16} />
-          </button>
-        )}
-      </div>
-
-      {/* Search */}
-      <div className="mb-6">
-        <label style={labelStyle}>Search</label>
-        <div className="relative">
-          <FiSearch size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#c9a84c" }} />
-          <input
-            type="text"
-            placeholder="Search fragrances..."
-            value={filters.search}
-            onChange={(e) => handleFilterChange("search", e.target.value)}
-            style={{ ...inputStyle, paddingLeft: "34px" }}
-            onFocus={(e) => (e.target.style.borderColor = "rgba(212,175,55,0.5)")}
-            onBlur={(e) => (e.target.style.borderColor = "rgba(212,175,55,0.2)")}
-          />
-        </div>
-      </div>
-
-      <div style={{ height: "1px", background: "rgba(212,175,55,0.08)", marginBottom: "24px" }} />
-
-      {/* Category */}
-      <div className="mb-6">
-        <label style={labelStyle}>Category</label>
-        <div className="relative">
-          <select
-            value={filters.category}
-            onChange={(e) => handleFilterChange("category", e.target.value)}
-            style={{ ...inputStyle, appearance: "none", cursor: "pointer", paddingRight: "32px" }}
-          >
-            <option value="" style={{ background: "#111" }}>All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat._id} value={cat.slug} style={{ background: "#111" }}>{cat.name}</option>
-            ))}
-          </select>
-          <FiChevronDown size={14} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#c9a84c", pointerEvents: "none" }} />
-        </div>
-      </div>
-
-      <div style={{ height: "1px", background: "rgba(212,175,55,0.08)", marginBottom: "24px" }} />
-
-      {/* Price Range */}
-      <div className="mb-6">
-        <label style={labelStyle}>Price Range</label>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-          <span style={{ fontSize: "13px", color: "#8a8070" }}>Rs. {filters.minPrice.toLocaleString()}</span>
-          <span style={{ fontSize: "13px", color: "#c9a84c", fontWeight: 600 }}>Rs. {filters.maxPrice.toLocaleString()}</span>
-        </div>
-        <input
-          type="range" min="0" max="50000" step="500"
-          value={filters.maxPrice}
-          onChange={(e) => handleFilterChange("maxPrice", parseInt(e.target.value))}
-          style={{ width: "100%", accentColor: "#d4af37", cursor: "pointer" }}
-        />
-        <div className="flex gap-2 mt-3">
-          <input
-            type="number" placeholder="Min" value={filters.minPrice}
-            onChange={(e) => handleFilterChange("minPrice", parseInt(e.target.value) || 0)}
-            style={{ ...inputStyle, textAlign: "center" }}
-          />
-          <input
-            type="number" placeholder="Max" value={filters.maxPrice}
-            onChange={(e) => handleFilterChange("maxPrice", parseInt(e.target.value) || 50000)}
-            style={{ ...inputStyle, textAlign: "center" }}
-          />
-        </div>
-      </div>
-
-      <div style={{ height: "1px", background: "rgba(212,175,55,0.08)", marginBottom: "24px" }} />
-
-      {/* Sort */}
-      <div>
-        <label style={labelStyle}>Sort By</label>
-        {/* On mobile drawer: 2-col grid for sort options */}
-        <div className={inDrawer ? "grid grid-cols-2 gap-2" : "flex flex-col gap-2"}>
-          {[
-            { value: "newest", label: "Newest First" },
-            { value: "price-asc", label: "Price: Low → High" },
-            { value: "price-desc", label: "Price: High → Low" },
-            { value: "rating", label: "Highest Rated" },
-          ].map((option) => (
-            <button
-              key={option.value}
-              onClick={() => handleFilterChange("sort", option.value)}
-              style={{
-                padding: "9px 12px",
-                borderRadius: "10px",
-                border: filters.sort === option.value
-                  ? "1px solid rgba(212,175,55,0.5)"
-                  : "1px solid rgba(212,175,55,0.1)",
-                background: filters.sort === option.value
-                  ? "rgba(212,175,55,0.1)"
-                  : "transparent",
-                color: filters.sort === option.value ? "#d4af37" : "#8a8070",
-                fontSize: "12px",
-                cursor: "pointer",
-                textAlign: "left",
-                transition: "all 0.2s",
-              }}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div style={{ background: "#0a0a0a", minHeight: "100vh" }} className="pt-16 sm:pt-20">
@@ -310,8 +198,8 @@ const Shop = () => {
             <input
               type="text"
               placeholder="Search fragrances..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange("search", e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               style={{ ...inputStyle, paddingLeft: "34px" }}
             />
           </div>
@@ -390,7 +278,17 @@ const Shop = () => {
               >
                 {/* Drag handle */}
                 <div style={{ width: "40px", height: "4px", background: "rgba(212,175,55,0.3)", borderRadius: "2px", margin: "0 auto 20px" }} />
-                <FilterSidebar inDrawer={true} />
+                <FilterSidebar
+                  inDrawer={true}
+                  filters={filters}
+                  activeFilterCount={activeFilterCount}
+                  clearFilters={clearFilters}
+                  setShowFilters={setShowFilters}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  categories={categories}
+                  handleFilterChange={handleFilterChange}
+                />
               </motion.div>
             </>
           )}
@@ -401,7 +299,17 @@ const Shop = () => {
 
           {/* Desktop Sidebar */}
           <div className="hidden md:block w-56 lg:w-64 flex-shrink-0">
-            <FilterSidebar inDrawer={false} />
+            <FilterSidebar
+              inDrawer={false}
+              filters={filters}
+              activeFilterCount={activeFilterCount}
+              clearFilters={clearFilters}
+              setShowFilters={setShowFilters}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              categories={categories}
+              handleFilterChange={handleFilterChange}
+            />
           </div>
 
           {/* Products Grid */}
@@ -526,6 +434,169 @@ const Shop = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FilterSidebar = ({
+  inDrawer = false,
+  filters,
+  activeFilterCount,
+  clearFilters,
+  setShowFilters,
+  searchQuery,
+  setSearchQuery,
+  categories,
+  handleFilterChange,
+}) => {
+
+
+  return (
+    <div
+      style={{
+        background: inDrawer ? "transparent" : "#0f0f0f",
+        border: inDrawer ? "none" : "1px solid rgba(212,175,55,0.12)",
+        borderRadius: inDrawer ? "0" : "20px",
+        padding: inDrawer ? "0" : "24px",
+        height: "fit-content",
+        position: inDrawer ? "static" : "sticky",
+        top: "100px",
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 style={{ color: "#f0e8d5", fontWeight: 700, fontSize: "16px" }}>
+            Filters
+          </h3>
+          {activeFilterCount > 0 && (
+            <span
+              style={{ fontSize: "11px", color: "#c9a84c", cursor: "pointer", textDecoration: "underline" }}
+              onClick={clearFilters}
+            >
+              Clear all ({activeFilterCount})
+            </span>
+          )}
+        </div>
+        {inDrawer && (
+          <button
+            onClick={() => setShowFilters(false)}
+            style={{
+              background: "rgba(212,175,55,0.1)",
+              border: "none",
+              borderRadius: "8px",
+              padding: "6px",
+              color: "#c9a84c",
+              cursor: "pointer",
+            }}
+          >
+            <FiX size={16} />
+          </button>
+        )}
+      </div>
+
+      {/* Search */}
+      <div className="mb-6">
+        <label style={labelStyle}>Search</label>
+        <div className="relative">
+          <FiSearch size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#c9a84c" }} />
+          <input
+            type="text"
+            placeholder="Search fragrances..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ ...inputStyle, paddingLeft: "34px" }}
+            onFocus={(e) => (e.target.style.borderColor = "rgba(212,175,55,0.5)")}
+            onBlur={(e) => (e.target.style.borderColor = "rgba(212,175,55,0.2)")}
+          />
+        </div>
+      </div>
+
+      <div style={{ height: "1px", background: "rgba(212,175,55,0.08)", marginBottom: "24px" }} />
+
+      {/* Category */}
+      <div className="mb-6">
+        <label style={labelStyle}>Category</label>
+        <div className="relative">
+          <select
+            value={filters.category}
+            onChange={(e) => handleFilterChange("category", e.target.value)}
+            style={{ ...inputStyle, appearance: "none", cursor: "pointer", paddingRight: "32px" }}
+          >
+            <option value="" style={{ background: "#111" }}>All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat.slug} style={{ background: "#111" }}>{cat.name}</option>
+            ))}
+          </select>
+          <FiChevronDown size={14} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#c9a84c", pointerEvents: "none" }} />
+        </div>
+      </div>
+
+      <div style={{ height: "1px", background: "rgba(212,175,55,0.08)", marginBottom: "24px" }} />
+
+      {/* Price Range */}
+      <div className="mb-6">
+        <label style={labelStyle}>Price Range</label>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+          <span style={{ fontSize: "13px", color: "#8a8070" }}>Rs. {filters.minPrice.toLocaleString()}</span>
+          <span style={{ fontSize: "13px", color: "#c9a84c", fontWeight: 600 }}>Rs. {filters.maxPrice.toLocaleString()}</span>
+        </div>
+        <input
+          type="range" min="0" max="50000" step="500"
+          value={filters.maxPrice}
+          onChange={(e) => handleFilterChange("maxPrice", parseInt(e.target.value))}
+          style={{ width: "100%", accentColor: "#d4af37", cursor: "pointer" }}
+        />
+        <div className="flex gap-2 mt-3">
+          <input
+            type="number" placeholder="Min" value={filters.minPrice}
+            onChange={(e) => handleFilterChange("minPrice", parseInt(e.target.value) || 0)}
+            style={{ ...inputStyle, textAlign: "center" }}
+          />
+          <input
+            type="number" placeholder="Max" value={filters.maxPrice}
+            onChange={(e) => handleFilterChange("maxPrice", parseInt(e.target.value) || 50000)}
+            style={{ ...inputStyle, textAlign: "center" }}
+          />
+        </div>
+      </div>
+
+      <div style={{ height: "1px", background: "rgba(212,175,55,0.08)", marginBottom: "24px" }} />
+
+      {/* Sort */}
+      <div>
+        <label style={labelStyle}>Sort By</label>
+        <div className={inDrawer ? "grid grid-cols-2 gap-2" : "flex flex-col gap-2"}>
+          {[
+            { value: "newest", label: "Newest First" },
+            { value: "price-asc", label: "Price: Low → High" },
+            { value: "price-desc", label: "Price: High → Low" },
+            { value: "rating", label: "Highest Rated" },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() => handleFilterChange("sort", option.value)}
+              style={{
+                padding: "9px 12px",
+                borderRadius: "10px",
+                border: filters.sort === option.value
+                  ? "1px solid rgba(212,175,55,0.5)"
+                  : "1px solid rgba(212,175,55,0.1)",
+                background: filters.sort === option.value
+                  ? "rgba(212,175,55,0.1)"
+                  : "transparent",
+                color: filters.sort === option.value ? "#d4af37" : "#8a8070",
+                fontSize: "12px",
+                cursor: "pointer",
+                textAlign: "left",
+                transition: "all 0.2s",
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>

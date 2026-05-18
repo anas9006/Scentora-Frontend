@@ -44,7 +44,7 @@ const Footer = () => {
               <li><a href="#" className="inline-block py-1 hover:text-secondary transition">FAQ</a></li>
               <li><a href="#" className="inline-block py-1 hover:text-secondary transition">Shipping</a></li>
               <li><a href="#" className="inline-block py-1 hover:text-secondary transition">Returns</a></li>
-              <li><a href="#" className="inline-block py-1 hover:text-secondary transition">Privacy Policy</a></li>
+              <li><Link to="/privacy" className="inline-block py-1 hover:text-secondary transition">Privacy Policy</Link></li>
             </ul>
           </div>
 
@@ -76,9 +76,9 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <p className="text-[#b3aba1] text-sm">&copy; 2024 Scentora. All rights reserved.</p>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#b3aba1]">
-              <a href="#" className="hover:text-secondary transition">Terms</a>
-              <a href="#" className="hover:text-secondary transition">Privacy</a>
-              <a href="#" className="hover:text-secondary transition">Cookies</a>
+              <Link to="/terms" className="hover:text-secondary transition">Terms</Link>
+              <Link to="/privacy" className="hover:text-secondary transition">Privacy</Link>
+              <Link to="/cookies" className="hover:text-secondary transition">Cookies</Link>
             </div>
           </div>
         </div>
