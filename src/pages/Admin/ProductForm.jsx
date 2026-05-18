@@ -68,12 +68,18 @@ const ProductForm = ({ isOpen, onClose, onSuccess, product }) => {
   }
 
   const handleAddNote = (type) => {
-    if (!noteInputs[type].trim()) return
+    const inputVal = noteInputs[type].trim()
+    if (!inputVal) return
+
+    // Split by comma in case they typed a list
+    const newNotes = inputVal.split(',').map(p => p.trim()).filter(Boolean)
+    if (newNotes.length === 0) return
+
     setFormData({
       ...formData,
       fragranceNotes: {
         ...formData.fragranceNotes,
-        [type]: [...formData.fragranceNotes[type], noteInputs[type].trim()],
+        [type]: [...formData.fragranceNotes[type], ...newNotes],
       },
     })
     setNoteInputs({ ...noteInputs, [type]: '' })
@@ -125,11 +131,35 @@ const ProductForm = ({ isOpen, onClose, onSuccess, product }) => {
     e.preventDefault()
     if (!formData.category) return toast.error('Please select a category')
     if (!isEditing && selectedImages.length === 0) return toast.error('Please add at least one product image')
+
+    // Auto-commit any leftover note inputs
+    const finalFragranceNotes = {
+      top: [...formData.fragranceNotes.top],
+      middle: [...formData.fragranceNotes.middle],
+      base: [...formData.fragranceNotes.base],
+    }
+
+    let notesUpdated = false
+    Object.keys(noteInputs).forEach((type) => {
+      const remainingInput = noteInputs[type].trim()
+      if (remainingInput) {
+        const parts = remainingInput.split(',').map(p => p.trim()).filter(Boolean)
+        if (parts.length > 0) {
+          finalFragranceNotes[type] = [...finalFragranceNotes[type], ...parts]
+          notesUpdated = true
+        }
+      }
+    })
+
+    const updatedFormData = notesUpdated
+      ? { ...formData, fragranceNotes: finalFragranceNotes }
+      : formData
+
     setLoading(true)
     try {
       const fd = new FormData()
-      Object.keys(formData).forEach(key => {
-        fd.append(key, key === 'fragranceNotes' ? JSON.stringify(formData[key]) : formData[key])
+      Object.keys(updatedFormData).forEach(key => {
+        fd.append(key, key === 'fragranceNotes' ? JSON.stringify(updatedFormData[key]) : updatedFormData[key])
       })
       selectedImages.forEach(file => fd.append('images', file))
       if (isEditing) {
@@ -241,7 +271,7 @@ const ProductForm = ({ isOpen, onClose, onSuccess, product }) => {
                   required
                   value={formData.category}
                   onChange={e => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full bg-white/5 border border-secondary/20 rounded-lg px-3 md:px-4 py-2 md:py-3 text-sm focus:outline-none focus:border-secondary transition-colors appearance-none"
+                  className="w-full bg-black border border-secondary/20 rounded-lg px-3 md:px-4 py-2 md:py-3 text-sm focus:outline-none focus:border-secondary transition-colors appearance-none"
                 >
                   <option value="">Select category</option>
                   {categories.map(cat => (

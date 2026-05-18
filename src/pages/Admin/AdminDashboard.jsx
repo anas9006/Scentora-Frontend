@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiBarChart, FiPackage, FiShoppingCart, FiUsers, FiPlus, FiTrash2, FiEdit, FiLayers, FiLoader } from 'react-icons/fi'
@@ -37,11 +37,25 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (!user || user.role !== 'admin') return
-    fetchStats()
-    fetchCategories()
-    fetchProducts()
-    fetchOrders()
-    fetchCustomers()
+
+    const loadAllData = async () => {
+      setLoading(true)
+      try {
+        await Promise.all([
+          fetchStats(),
+          fetchCategories(),
+          fetchProducts(),
+          fetchOrders(),
+          fetchCustomers()
+        ])
+      } catch (error) {
+        console.error('Error loading admin sanctum data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadAllData()
   }, [user])
 
   const fetchStats = async () => {
@@ -64,8 +78,6 @@ const AdminDashboard = () => {
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -212,6 +224,15 @@ const AdminDashboard = () => {
 
   if (!user || user.role !== 'admin') {
     return <Navigate to="/" replace />
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-primary flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-secondary/20 border-t-secondary rounded-full animate-spin" />
+        <h2 className="text-secondary font-bold tracking-widest text-xs uppercase animate-pulse">Entering Sanctum...</h2>
+      </div>
+    )
   }
 
   const statCards = [
@@ -487,10 +508,12 @@ const AdminDashboard = () => {
                       <tr key={prod._id} className="hover:bg-white/5 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-white/5 overflow-hidden">
+                            <Link to={`/product/${prod._id}`} className="w-12 h-12 rounded-lg bg-white/5 overflow-hidden hover:opacity-80 transition-opacity flex-shrink-0">
                               <img src={prod.images?.[0]?.url || '/placeholder-perfume.jpg'} alt="" className="w-full h-full object-cover" />
-                            </div>
-                            <span className="font-medium text-light">{prod.name}</span>
+                            </Link>
+                            <Link to={`/product/${prod._id}`} className="font-medium text-light hover:text-secondary transition-colors">
+                              {prod.name}
+                            </Link>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-muted">{prod.brand}</td>
@@ -532,13 +555,15 @@ const AdminDashboard = () => {
                 {products.map((prod) => (
                   <div key={prod._id} className="p-4">
                     <div className="flex gap-3">
-                      <div className="w-16 h-16 rounded-lg bg-white/5 overflow-hidden flex-shrink-0">
+                      <Link to={`/product/${prod._id}`} className="w-16 h-16 rounded-lg bg-white/5 overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity">
                         <img src={prod.images?.[0]?.url || '/placeholder-perfume.jpg'} alt="" className="w-full h-full object-cover" />
-                      </div>
+                      </Link>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <h3 className="text-light font-bold text-sm truncate">{prod.name}</h3>
+                            <Link to={`/product/${prod._id}`} className="text-light font-bold text-sm truncate block hover:text-secondary transition-colors">
+                              {prod.name}
+                            </Link>
                             <p className="text-muted text-xs truncate">{prod.brand}</p>
                           </div>
                           <span className="text-light font-bold text-sm whitespace-nowrap">Rs.{prod.price}</span>

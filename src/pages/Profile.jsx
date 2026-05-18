@@ -1,6 +1,7 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import LoadingSpinner from "../components/LoadingSpinner";
 import {
@@ -68,6 +69,8 @@ const PasswordField = ({ label, value, onChange, required }) => {
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("details");
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState([]);
@@ -107,7 +110,10 @@ const Profile = () => {
 
   useEffect(() => {
     fetchAddresses();
-  }, []);
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -388,7 +394,6 @@ const Profile = () => {
                         { label: "First Name", key: "firstName", type: "text" },
                         { label: "Last Name", key: "lastName", type: "text" },
                         { label: "Email Address", key: "email", type: "email" },
-                        { label: "Phone Number", key: "phone", type: "tel" },
                       ].map(({ label, key, type }) => (
                         <div key={key}>
                           <label className={labelCls}>{label}</label>
@@ -548,6 +553,35 @@ const Profile = () => {
                   exit={{ opacity: 0, x: -16 }}
                   className="space-y-4"
                 >
+                  {/* Contact Phone Number */}
+                  <div className="surface-panel rounded-2xl p-4 sm:p-6">
+                    <h2 className="text-base sm:text-lg font-semibold text-light flex items-center gap-2 mb-2">
+                      <FiUser className="text-accent" size={16} /> Contact Phone Number
+                    </h2>
+                    <p className="text-muted text-xs mb-4">
+                      Please enter a phone number where we can reach you for delivery verification.
+                    </p>
+                    <form onSubmit={handleProfileUpdate} className="flex flex-col sm:flex-row gap-3 items-end">
+                      <div className="flex-1 w-full">
+                        <label className={labelCls}>Phone Number</label>
+                        <input
+                          type="tel"
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                          placeholder="e.g. +1 555-0199"
+                          className={fieldCls}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-premium px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex-shrink-0 flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                      >
+                        <FiSave size={13} /> {loading ? "Saving…" : "Save Phone"}
+                      </button>
+                    </form>
+                  </div>
+
                   {/* Saved addresses */}
                   <div className="surface-panel rounded-2xl p-4 sm:p-6">
                     <h2 className="text-base sm:text-lg font-semibold text-light flex items-center gap-2 mb-3 sm:mb-4">

@@ -101,9 +101,11 @@ const Checkout = () => {
     }
   };
 
+  const validItems = cart?.items?.filter((item) => item && item.product) || [];
+
   const subtotal = cart
-    ? cart.items.reduce(
-        (sum, item) => sum + (item.product.price || 0) * item.quantity,
+    ? validItems.reduce(
+        (sum, item) => sum + (item.product?.price || 0) * item.quantity,
         0,
       )
     : 0;
@@ -114,12 +116,12 @@ const Checkout = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!cart || cart.items.length === 0) {
+      if (!cart || validItems.length === 0) {
         toast.error("Cart is empty");
         return;
       }
       const orderData = {
-        items: cart.items.map((item) => ({
+        items: validItems.map((item) => ({
           product: item.product._id,
           quantity: item.quantity,
           price: item.product.price,
@@ -167,14 +169,14 @@ const Checkout = () => {
               </h2>
 
               <div className="space-y-2 mb-3 pb-3 border-b border-gray-700">
-                {cart.items.map((item) => (
+                {validItems.map((item) => (
                   <div
                     key={item._id}
                     className="flex justify-between gap-2 text-sm"
                   >
                     <div className="min-w-0">
                       <p className="font-semibold truncate">
-                        {item.product.name}
+                        {item.product?.name}
                       </p>
                       <p className="text-gray-400 text-xs">
                         Qty: {item.quantity}
@@ -182,7 +184,7 @@ const Checkout = () => {
                     </div>
                     <p className="font-bold gold-text shrink-0 text-sm">
                       Rs.{" "}
-                      {((item.product.price || 0) * item.quantity).toFixed(2)}
+                      {((item.product?.price || 0) * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 ))}
@@ -217,6 +219,23 @@ const Checkout = () => {
                 <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 gold-text">
                   Shipping Information
                 </h2>
+
+                {/* Save Address for Future Orders card if no saved addresses */}
+                {addresses.length === 0 && (
+                  <div className="mb-6 p-4 rounded-xl border border-secondary/20 bg-secondary/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-semibold gold-text">Want to save your address for future purchases?</h4>
+                      <p className="text-xs text-muted mt-0.5">Create and manage your luxury address book in your account profile.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/profile", { state: { activeTab: "addresses" } })}
+                      className="btn-premium px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap flex-shrink-0"
+                    >
+                      Go to Profile & Save Address
+                    </button>
+                  </div>
+                )}
 
                 {/* Saved addresses selector */}
                 {addresses.length > 0 && (
@@ -383,14 +402,14 @@ const Checkout = () => {
             <h2 className="text-2xl font-bold mb-6 gold-text">Order Summary</h2>
 
             <div className="space-y-4 mb-6 pb-6 border-b border-gray-700">
-              {cart.items.map((item) => (
+              {validItems.map((item) => (
                 <div key={item._id} className="flex justify-between text-sm">
                   <div>
-                    <p className="font-semibold">{item.product.name}</p>
+                    <p className="font-semibold">{item.product?.name}</p>
                     <p className="text-gray-400">Qty: {item.quantity}</p>
                   </div>
                   <p className="font-bold gold-text">
-                    Rs. {((item.product.price || 0) * item.quantity).toFixed(2)}
+                    Rs. {((item.product?.price || 0) * item.quantity).toFixed(2)}
                   </p>
                 </div>
               ))}

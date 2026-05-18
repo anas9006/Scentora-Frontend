@@ -66,7 +66,9 @@ const Wishlist = () => {
     );
   }
 
-  if (!wishlist || wishlist.products.length === 0) {
+  const validProducts = wishlist?.products?.filter((product) => product) || [];
+
+  if (!wishlist || validProducts.length === 0) {
     return (
       <div className="min-h-screen bg-primary pt-20 sm:pt-24 pb-12">
         <div className="max-w-4xl mx-auto px-4 text-center py-16 sm:py-20">
@@ -97,14 +99,14 @@ const Wishlist = () => {
             My <span className="gold-text">Wishlist</span>
           </h1>
           <span className="text-xs sm:text-sm text-gray-400">
-            {wishlist.products.length}{" "}
-            {wishlist.products.length === 1 ? "item" : "items"}
+            {validProducts.length}{" "}
+            {validProducts.length === 1 ? "item" : "items"}
           </span>
         </div>
 
         {/* Grid */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 items-start">
-          {wishlist.products.map((product) => (
+          {validProducts.map((product) => (
             <motion.div
               key={product._id}
               initial={{ opacity: 0 }}
