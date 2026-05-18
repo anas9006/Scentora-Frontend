@@ -281,22 +281,35 @@ const Home = () => {
               <p>Loading products...</p>
             </div>
           ) : featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product, index) => (
-                <motion.div
-                  key={product._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.08 }}
+            <div className="space-y-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredProducts.slice(0, 4).map((product, index) => (
+                  <motion.div
+                    key={product._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.08 }}
+                  >
+                    <ProductCard
+                      product={product}
+                      onAddToCart={() => handleAddToCart(product)}
+                      onAddToWishlist={() => handleAddToWishlist(product)}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* See More Link */}
+              <div className="text-center pt-2">
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center gap-2 text-secondary hover:text-secondary/80 font-bold tracking-wider text-xs uppercase transition group"
                 >
-                  <ProductCard
-                    product={product}
-                    onAddToCart={() => handleAddToCart(product)}
-                    onAddToWishlist={() => handleAddToWishlist(product)}
-                  />
-                </motion.div>
-              ))}
+                  See more
+                  <span className="transform group-hover:translate-x-1.5 transition-transform duration-300">→</span>
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="surface-panel rounded-2xl p-8 text-center border border-secondary/10">
